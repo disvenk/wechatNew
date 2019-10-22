@@ -1,0 +1,329 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+html,body {
+	position: relative;
+	font-size: 14px;
+}
+i {
+	font-style: normal;
+}
+/*进入店铺选择*/
+.weui_dialog_shop {
+    position: fixed;
+    z-index: 1;
+    width: 48vh;
+    height: 48vh;
+    top: 20%;
+    left: 0;
+    right: 0;
+    margin: auto;
+    text-align: center;
+    background: #fff;
+    border-radius: 10px;
+}
+.main-height {
+    height: 100%;
+    position: relative;
+    text-align: center;
+    font-family: "微软雅黑";
+}
+.weui_btn + .weui_btn {
+    margin-top: 0px;
+}
+.weui_btn.weui_mini_btn {
+    display: inline-block;
+    font-family: "微软雅黑";
+    font-size: 14px;
+    line-height: 35px;
+    margin: initial;
+}
+.weui_btn.weui-btn_change {
+    background: #eeeeee;
+    width: initial;
+    color: #9e9e9e;								
+}
+.weui_btn.weui-btn_into {
+	background: #000000;
+	width: initial;	
+}
+.changeBtn {
+	position: relative;
+	top: -8vh;
+	display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    padding: 0 8%;
+}
+.shop_addressInfo {
+    vertical-align: middle;
+    margin-left: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 88%;
+    display: inline-block;
+}
+.remainLamp {
+	position: relative;
+	text-align: center;
+}
+.backgroundImg {
+	width: 48vh;
+	height: 18vh;
+}
+.toEnter {
+	position: relative;
+	top: -12vh;				
+}
+.shopName {				
+	position: relative;
+	top: -10vh;
+	color: #424242;
+	font-size: 16px;
+	font-weight: bold;
+}
+.detailedInfor {
+	position: relative;
+	top:-9vh;
+	font-size: 14px;
+	text-align: left;
+	padding: 0 8%;
+	color: #757575;
+}
+.smallImg {
+    width: 14px;
+    height: 18px;
+    vertical-align: middle;
+}
+/*弹窗样式*/
+.weui_toast.msg-dialog {
+	min-height: 0;
+	left: 0;
+	right: 0;
+	margin: 0 auto;
+	top: 28%;
+	width: 150px;
+	height: 150px;
+	z-index: 301;
+}
+.weui_mask_transparent {
+	position: fixed;
+	z-index: 301;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+}
+.weui_toast {
+	position: fixed;
+	background: rgba(40, 40, 40, 0.75);
+	text-align: center;
+	border-radius: 5px;
+	color: #FFFFFF;
+}
+.msgImg {
+	width: 50px;
+	height: 50px;
+}
+.weui_toast.msg-dialog>p {
+	padding: 0px 10px;
+	position: relative;
+	top: 10px;
+}
+.full-height {
+	position: relative;
+	height: 100%;
+}
+.middle {
+	display: table-cell;
+	vertical-align: middle;
+}
+.article-list .art-item {
+    border-bottom: 1px solid #fff;
+}
+.art-item {
+    height: 50vw;
+    position: relative;
+    border-bottom: 1px solid #fff;
+}
+.full-height .art-item:last-child {
+	border-bottom: none;
+}
+.art-item> p {
+    padding: 0 10px;
+    background: rgba(0, 0, 0, 0.52);
+    color: #fff;
+    line-height: 28px;
+}
+.has-fans .art-price {
+    text-decoration: line-through;
+}
+.art-item .art-price {
+    float: right;
+}
+.fans-price-item {
+    color: #fff;
+    padding: 2px 5px;
+    border-radius: 4px 0 0 4px;
+    background-color: #000;
+    float: right;
+    margin-top: 12px;
+}
+
+.menu-cart {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(121, 120, 120, 0.85);
+}
+.weui_mask_transparent.initial {
+	bottom: 50px;
+	z-index: -10;
+	height: initial;
+	background: rgba(0, 0, 0, 0.5);
+}
+.show-shop-cart {
+    padding: 5px;
+    color: #fff;
+    font-size: 14px;
+    position: relative;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
+.shopCartImg {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    bottom: 8px;
+    display: table-cell;
+    vertical-align: middle;
+    left: 10px;
+}
+.shopCartCount {
+    position: absolute;
+    bottom: 38px;
+    left: 40px;
+}
+.menu-cart .art-count {
+    height: 16px;
+    width: 16px;
+    border: 2px solid red;
+    display: inline-block;
+    border-radius: 50%;
+    line-height: 20px;
+    text-align: center;
+    font-style: normal;
+    color: #F9F5F5;
+    margin: 0 3px;
+    background-color: red;
+}
+.artCount.art-count {
+    height: 0px;
+    width: 0px;
+    border: initial;
+}
+.weui_btn.weui_btn_mini.order-ok {
+    height: 35px;
+    font-size: 1rem;
+}
+.art-item .numberControl {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+}
+.art-item .plus-span {
+    padding-right: 15px;
+    padding-bottom: 15px;
+}
+.numberControl>span {
+    padding: 0px;
+    display: block;
+    float: left;
+}
+.numberControl .art-number {
+    padding: 10px 8px 0px 8px;
+    font-size: 18px;
+}
+.icon.plus {
+    font-size: 26px;
+}
+.icon.minus {
+    font-size: 24px;
+}  
+.shopcart-list {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    bottom: 0;
+    width: 100%;
+    height: 50%;
+    z-index: 299;
+    position: fixed;
+    background: #fff;
+    text-align: center;
+    color: #000;
+    font-family: "微软雅黑";
+    font-size: 14px;
+}
+.box-transition {  
+    transition: height .5s;  
+    -moz-transition: height .5s; 
+	-webkit-transition: height .5s; 
+	-o-transition: height .5s;
+} 		  	
+.box-enter,.box-leave {  
+    height: 0;  
+	width: 100%;   
+} 
+.weui-cell.header_table {
+    position: relative;
+    background-color: #e0e0e0;
+    padding: 6px 15px;
+    box-sizing: border-box;
+    text-align: center;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+}
+.groupCartList {
+    /*position: relative;
+    overflow: hidden;*/
+    text-align: center;
+    font-size: 1.1rem;
+}
+.groupCartItem:last-child {
+    border-bottom: none;
+}
+.groupCartItem {
+    padding: 10px 15px;
+    position: relative;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    color: #000;
+    border-bottom: 1px solid #e7e7e7;
+}
+.weui_flex_cart {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+    flex: 1;
+    text-align: center;
+}
+.group-item .numberControl {
+    float: right;
+}

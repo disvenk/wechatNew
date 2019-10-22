@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+		<meta name="format-detection" content="telephone=no"/>
+		<title>地址管理</title>
+		<link href="//cdn.bootcss.com/weui/1.1.2/style/weui.css" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="../assets/css/weui.css"/>
+		<link rel="stylesheet" type="text/css" href="../assets/css/total.css"/>
+		<script src="../assets/js/custom/util.js"></script>
+		<style type="text/css">
+			html,body {
+				background: #fff;
+			}
+		</style>
+	</head>
+	<body id="app">
+		<div class="full-height">
+			<router-view></router-view>	
+			<weui-dialog :show.sync="wMessage.show" :msg="wMessage.message" :type="wMessage.type"></weui-dialog>
+		</div>
+		<!--地址列表-->
+        <template id="address-temp">
+        	<div class="weui_dialog ex_dialog">
+        	<div class="order_address_list">
+        		<div>
+	        		<div style="text-align:center;margin-top: 38%;" v-if="addressListInfo.length==0">
+	        			<img style="width:5rem;heigth:5rem;" src="../assets/img/noAddress.png"/>
+	        			<p style="font-size: 1.3rem;color: #949496;margin-top: 10px;">没有收货地址</p>
+	        			<p style="color: #c7c7c7;">点击下方按钮添加</p>
+	        		</div>
+		            <div>
+		            	<div class="weui-cell weui-cell_access" v-for="f in addressListInfo" @click="choiceAddress(f.id)">
+			                <div class="weui-cell__bd">
+			                	<p class="order_addressInFor" style="width: initial;">{{f.address}} {{f.addressReality}}</p>
+			                	<p>
+			                		<span>{{f.name}}  
+			                			<i v-if="f.sex == 0" style="margin-left: 5px;">先生</i>
+			                			<i v-if="f.sex == 1" style="margin-left: 5px;">女士</i>
+			                		</span>
+			                		<span style="margin-left:10px;">{{f.mobileNo}}</span>
+			                	</p>
+			                </div>
+			                <div class="weui-cell__ft">
+			                	<!--<img class="addressImg" src="../assets/img/editAddress.png"/>-->
+			                </div>
+			            </div>
+		            </div>			            		            
+	            </div>
+			</div>
+			<div id="addAddress" style="height: 76px;margin: 0 5%;">
+				<button type="button" class="weui-btn weui-btn_primary" style="margin-top: 15px;" @click="addAddress()" v-if="addBtn">添加地址</button>
+			</div>			
+			<!--<weui-loading :show.sync="loadShow"></weui-loading>	-->
+		</div>
+        </template>
+        <!--编辑或添加地址-->
+		<template id="edit-temp">
+			<div class="weui_dialog ex_dialog" style="background:#f1f1f1;">
+	        	<div class="order_address_list">
+	        		<div class="weui-cell weui-address">
+	                	<!--<img class="arrorImg" @click="backToAddress" src="../assets/img/arror.png"/>-->
+		                <div class="weui-cell__hd" style="text-align:center;flex:1;">		                	
+		                	<span>添加地址信息</span>
+		                </div>
+		                <div class="weui-cell__ft"></div>
+		            </div>	
+					<div class="weui-cell weui-address">
+		                <div class="weui-cell__hd">
+		                	<label class="weui_left">联系人</label>
+		                </div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" id="name-input" type="text" placeholder="姓名" v-model="name">
+		                </div>
+		            </div>	
+		            <div class="weui-cell weui-address weui-cells_checkbox">
+		            	<label class="weui_left">性别</label>
+			            <label class="weui-check__label" @click="sex=0" ontouchend="click()">
+			                <span class="weui-cell__hd">
+			                    <input type="radio" class="weui-check" name="checkbox1" checked="checked" v-model="sex" value="0">
+			                    <i class="weui-icon-checked"></i>
+			                </span>
+			                <span>男士</span>
+			            </label>
+			            <label class="weui-check__label" @click="sex=1" ontouchend="click()">
+			                <span class="weui-cell__hd">
+			                    <input type="radio" name="checkbox1" class="weui-check" v-model="sex" value="1">
+			                    <i class="weui-icon-checked"></i>
+			                </span>
+		                    <span>女士</span>
+			            </label>
+			        </div>
+		            <div class="weui-cell weui-address">
+		                <div class="weui-cell__hd">
+		                	<label class="weui_left">电话</label>
+		                </div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="tel" id="phone-input" placeholder="请输入11位手机号码" v-model="phone" :value="customerInfo.telephone" maxlength="11">
+		                </div>
+		            </div>
+		            <div class="weui-cell weui-address weui-cell_access" @click="showBaiduMap">
+		                <div class="weui-cell__hd">
+		                	<label class="weui_left">地址</label>
+		                </div>
+		                <div class="weui-cell__hd">
+		                	<img style="width:1.3rem;height:1.3rem;vertical-align: middle;" src="../assets/img/sign.png"/>
+		                </div>
+		                <div class="weui-cell__bd">
+		                	<span style="color: #a2a2a2;" v-if="!address">点击添加(如小区/大厦/学校等)</span>
+		                	<span style="color: #000;" v-if="address">{{address}}</span>	                   
+		                </div>
+		            </div> 
+		            <div class="weui-cell weui-address">
+		            	<div class="weui-cell__hd">
+		                	<label class="weui_left">地址</label>
+		                </div>
+		                <div class="weui-cell__bd">		                	
+		                	<input class="weui-input" type="text" v-model="detailedAddress" placeholder="详细地址(如楼号/楼层/门牌号等)" >
+		                </div>
+		            </div>		            
+		            <div class="weui_cell weui-address weui_cell_switch">
+	                    <div class="weui_cell_primary">
+	                        <p>设为默认</p>
+	                    </div>
+	                    <div class="weui_cell_ft">
+	                        <span class="weui_switch useaccount" :class="{checkedDefult:checkAccount}" @click="useChecked"></span>
+	                    </div>
+	                </div>		        
+				</div>
+				<button type="button" class="weui-btn weui-btn_primary" id="addAddress" @click="saveAddress">保存</button>
+			</div>
+		</template>	       
+		
+		<!--编辑或添加地址-->
+		<template id="map-temp">
+	        <div class="weui_dialog ex_dialog">
+	        	<input type="hidden" id="lng" :value="lngVal">
+				<input type="hidden" id="lat" :value="latVal">
+	        	<div class="searchBar">
+	        		<img class="backImg" @click="backToPage" src="../assets/img/arror.png"/ >
+	        		<input type="text" class="form-control" id="suggestId" placeholder="请输入您的收货地址" v-model="searchName">
+	        		<img class="searchImg" src="../assets/img/search.png"/ >
+	        		<img class="clearImg" @click="clearText" src="../assets/img/clear.png"/ >
+	        	</div>
+	        	<div id="container"></div>
+                <div class="r_shadow" id="search-result">		
+                    <div class="r_searchlist positiolist" >	
+                    	<div class="weui-cell" v-for="f in SearchResultList">
+                    		<div class="weui-cell_address" @click="zoomto(f)" ontouchend="click()">
+                        		<div class="page__title" style="text-align: left;">{{f.title}}</div>
+                        		<div class="weui-cells_result">{{f.city}}{{f.address}}</div>
+                    		</div>
+                    	</div>
+                    </div> 
+                </div>
+			</div>
+		</template>	
+		
+		<script type="text/javascript">
+			var baseUrl = getParam("baseUrl");
+	        //baseUrl = "http://test.tt.com:8083";	        
+		</script>
+        <script src="../assets/js/vue1.0.17.min.js?v=2321"></script>
+        <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+        <script src="../assets/js/custom/invoice/iscroll.js"></script>	
+		<script src="../assets/js/custom/service.js"></script>	
+		<script src="../assets/js/vue-router.js"></script>
+		<script type="text/javascript">
+			document.addEventListener('touchmove', function (e) {
+				e.preventDefault();
+			}, false);
+			
+			Vue.component("weui-dialog", {
+		        props: ['show','msg','type'],
+		        template: '<div class="weui_loading_toast" v-if="show" >' +
+		        '<div class="weui_mask_transparent" @click="close"></div>' +
+		        '<div class="weui_toast msg-dialog">' +
+		        '<img src="../assets/img/correctImg.png" class="msgImg" v-if="type && type == 1" />' +
+		        '<img src="../assets/img/errorMsg.png" class="msgImg" v-if="type && type == 2" />' +
+		        '<p>{{msg}}</p>' +
+		        '</div>' +
+		        '</div>',
+		        methods: {
+		            close: function () {
+		                this.show = false;
+		            }
+		        }
+		    });
+			/*正在加载弹窗*/
+//			Vue.component("weui-loading", {
+//			    props: ["msg", "show"],
+//			    template: '<div class="weui_loading_toast" v-if="show">' +
+//			    '	<div class="weui_mask_transparent" style="background:#000;"></div>' +
+//			    '	<div class="weui_toast" style="background: initial;width: 100%;height: 100%;top: 30%;left:0;margin-left:0;">' +
+//				'		<img src="../assets/img/logo.jpg" style="width: 8rem;height: 8rem;position: relative;" />'+	
+//				'		<div class="programContainer">'+ 
+//				'			<div class="progress">'+ 
+//				'				<div class="progress-bar"></div>'+
+//				'			</div>'+ 
+//				'		</div>'+	
+//			    '		<p style="font-size: 16px;">{{msg||"加载中，请稍候"}}</p>' +  
+//			    '		<p class="footTitle" style="bottom:3rem;">Resto+</p>' +   
+//			    '		<p class="footTitle">400-805-1711</p>'+
+//			    '	</div>' +
+//			    '</div>',
+//			})		        
+		</script>
+		<script src="../assets/js/custom/address/address-page.js"></script>
+		<script src="../assets/js/custom/address/edit-page.js"></script>
+		<script src="../assets/js/custom/address/map-page.js"></script>
+		<script src="../assets/js/custom/address/main.js"></script>
+		<script src="../assets/js/custom/address/router.js"></script>		
+	</body>
+</html>

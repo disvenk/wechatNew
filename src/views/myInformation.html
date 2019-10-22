@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>我的信息</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+		<meta name="format-detection" content="telephone=no"/>
+		<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	    <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+	    <META HTTP-EQUIV="expires" CONTENT="0">
+		<link rel="stylesheet" href="../assets/css/weui.css" />
+		<link rel="stylesheet" href="../assets/css/total.css" />
+		<script src="../assets/js/custom/util.js"></script>
+		<style>
+			html,body {
+				height: 100%;
+				-webkit-tap-highlight-color: transparent;
+				overflow-y: hidden;
+			}
+			.page {
+			    overflow-y: auto;
+			    -webkit-overflow-scrolling: touch;
+			}
+			.page, body {
+			    background-color: #E7E7E7;
+			}
+			.page.slideIn {
+				-webkit-animation: slideIn 0.3s forwards;
+				animation: slideIn 0.3s forwards;
+			}			
+			.page.slideOut {
+				-webkit-animation: slideOut 0.3s forwards;
+				animation: slideOut 0.3s forwards;
+			}
+			.container, .page {
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0
+			}
+			.container {
+				overflow: hidden
+			}
+			@-webkit-keyframes slideIn {
+				from {
+					-webkit-transform: translate3d(100%,0,0);
+					transform: translate3d(100%,0,0)
+				}
+			
+				to {
+					-webkit-transform: translate3d(0,0,0);
+					transform: translate3d(0,0,0)
+				}
+			}			
+			@keyframes slideIn {
+				from {
+					-webkit-transform: translate3d(100%,0,0);
+					transform: translate3d(100%,0,0)
+				}
+			
+				to {
+					-webkit-transform: translate3d(0,0,0);
+					transform: translate3d(0,0,0)
+				}
+			}			
+			@-webkit-keyframes slideOut {
+				from {
+					-webkit-transform: translate3d(0,0,0);
+					transform: translate3d(0,0,0)
+				}
+			
+				to {
+					-webkit-transform: translate3d(100%,0,0);
+					transform: translate3d(100%,0,0)
+				}
+			}			
+			@keyframes slideOut {
+				from {
+					-webkit-transform: translate3d(0,0,0);
+					transform: translate3d(0,0,0)
+				}
+			
+				to {
+					-webkit-transform: translate3d(100%,0,0);
+					transform: translate3d(100%,0,0)
+				}
+			}
+			
+			/*图标样式*/
+			.weui_cell_icons {
+				position: relative;
+			}
+			.weui_icon_cancel:before {
+				font-size: 23px;
+			}
+			.weui_cell {
+				font-size: 17px;
+			}
+			.personInformation {
+				position: absolute;
+				left: 6rem;
+				top: 10px;
+				width: 200px;
+			    overflow: hidden;
+			    white-space: nowrap;
+			    text-overflow: ellipsis;
+			}
+			.weui_input {
+			    border: 0;
+			    outline: 0;
+			    -webkit-appearance: none;
+			    background-color: transparent;
+			    font-size: inherit;
+			    color: inherit;
+			    height: 1.41176471em;
+			    line-height: 1.41176471;
+			    font-family: '微软雅黑';
+			    width: 50%;
+			}
+			.remainWords {
+				position: absolute;
+			    right: 8px;
+			    bottom: 8px;
+			    color: #9c9c9c;
+			}
+			.personJob {
+				position: relative;
+				left: 2rem;
+			}
+			.weui_btn_job {
+				display: inline-flex;
+				font-size: 14px;				
+				padding: 0px 22px;
+				background-color: #93bfe5;
+			}
+			.weui_cells_radio label {
+			    padding: 8px 10px;
+			}
+			.weui_label {
+			    display: block;
+			    width: 105px;
+			    word-wrap: break-word;
+			    word-break: break-all;
+			}
+			input[type="date"]::-webkit-inner-spin-button { visibility: hidden;display: none; }
+			.bottom_button{
+				position: absolute;
+				top:95px;
+				width:100%;
+			}	
+			.weui_dialog_ft:after {
+			    border-top: initial; 
+			}
+			#pageJob {
+				position: relative;
+        		overflow: hidden;
+        		height: 100%;
+			}	
+		</style>
+		
+	</head>
+	<body id="vueControl" style="font-family: '微软雅黑';background: #fff;">
+		<div class="container js_container">
+			<!--个人信息详情-->
+			<div class="page">
+				<div class="weui_cells weui_cells_access">			
+					<div class="weui_media_box weui_media_appmsg" style="padding: 10px 15px;">                
+		                <div class="weui_media_bd" style="margin-left: initial;">
+		                    <span class="weui_media_title">头像</span>
+		                </div>
+		                <div class="weui_media_hd" style="margin-right: initial;line-height: initial;">
+		                    <img class="weui_media_appmsg_thumb" :src="customer.headPhoto">
+		                </div>
+		            </div>			
+					<div class="weui_cell">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>昵称</span>
+			                <span class="personInformation">{{customer.nickname}}</span>
+			            </div>
+			        </div>
+			        <div class="weui_cell">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>性别</span>
+			                <span class="personInformation" v-if="customer.sex == 1">男</span>
+			                <span class="personInformation" v-if="customer.sex == 2">女</span>
+			            </div>
+			        </div>
+			        <a class="weui_cell js_cell" @click="showAge">	        	
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>年龄</span>
+			                <span class="personInformation">{{personAge}}</span>
+			            </div>
+			            <div class="weui_cell_ft"></div>
+			        </a>
+			        <a class="weui_cell js_cell" @click="showAge">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>星座</span>
+			                <span class="personInformation">{{starSign}}</span>
+			            </div>
+			            <div class="weui_cell_ft"></div>
+			        </a>	        
+				</div>
+				
+				<div class="weui_cells weui_cells_access" >
+					<a class="weui_cell" @click="showJob">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>职业</span>
+			                <span class="personInformation">{{myVocation}}</span>
+			            </div>
+			            <div class="weui_cell_ft"></div>
+			        </a>
+			        <a class="weui_cell" @click="showCompany">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>公司</span>	
+			                <input class="weui_input personInformation" type="text" placeholder="填输入公司名称" v-model="companyName" readonly="readonly" disabled="disabled">                   		               			
+			            </div>
+			            <div class="weui_cell_ft"></div>
+			        </a>
+			        <a class="weui_cell" @click="showSchool">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>学校</span>
+			                <input class="weui_input personInformation" type="text" placeholder="填写学校,发现校友" v-model="schoolName" readonly="readonly" disabled="disabled">
+			            </div>
+			            <div class="weui_cell_ft"></div>
+			        </a>
+			        <a class="weui_cell">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>所在地</span>
+			                <span class="personInformation">{{customer.province}}{{customer.city}}</span>
+			            </div>
+			        </a>
+			        <a class="weui_cell" @click="showViod">
+			            <div class="weui_cell_bd weui_cell_primary">
+			                <span>个人说明</span>			                
+			                <span class="personInformation">{{customer.customerDetail.personalNote}}</span>
+			            </div>
+			            <div class="weui_cell_ft"></div>
+			        </a>
+				</div>	
+			</div>
+			<weui-dialog-current :show.sync="wMessage.show" :msg="wMessage.message" :type="wMessage.type" ></weui-dialog-current>
+			<weui-loading :show.sync="loadShow"></weui-loading>
+			<!--年龄星座信息-->
+			<template v-if="myAge.show">
+				<div class="page" :class="{slideIn:myAge.show}" id="pageAge">
+					<div class="weui_cells weui_cells_access">
+						<div class="weui_cell">
+			                <div class="weui_cell_bd weui_cell_primary">
+			                	<label for="" class="weui_label">生日</label>
+			                </div>
+			                <div class="personInformation">
+			                    <input type="date" id="myAgeInput" class="weui_input" v-model="age" style="width: 200px;">
+			                </div>
+			                <div class="weui_cell_ft"></div>
+			            </div>
+						<div class="weui_cell">
+			                <div class="weui_cell_bd weui_cell_primary">
+				                <span>年龄</span>
+				                <span class="personInformation">{{personAge}}</span>	                    
+			                </div>		                
+			            </div>
+			            <div class="weui_cell">
+				            <div class="weui_cell_bd weui_cell_primary">
+				                <span>星座</span>
+				                <span class="personInformation">{{starSign}}</span>
+			                </div>
+			            </div>
+		            </div>
+		            <div class="bottom_button" style="position:fixed;top: 150px;">
+                        <div class="weui_dialog_ft margin-top-0 no-border-top" style="line-height:38px;">
+                            <a class="weui_btn_dialog primary" @click="saveMyBirth" style="margin:0px 40px;border-radius: 5px;background-color: #000;">保存</a>
+                        </div>
+                    </div>
+				</div>
+			</template>
+			<!--职业信息-->
+			<template v-if="myJob.show">
+				<div class="page stopIscroll" :class="{slideIn:myJob.show}" id="pageJob">
+					<div>
+						<div class="weui_cells weui_cells_radio" style="margin-top: 0px;">
+							<label class="weui_cell weui_check_label" for="{{f.id}}" v-for="f in vocation" @click="saveMyJob(f)">
+					            <div class="weui_cell_bd weui_cell_primary">
+					            	<span class="weui_btn weui_btn_job" v-if="f.color == '蓝色'" style="background-color: #93bfe5;">{{f.sign}}</span>
+					            	<span class="weui_btn weui_btn_job" v-if="f.color == '黄色'" style="background-color: #e8ab6c;">{{f.sign}}</span>
+					            	<span class="weui_btn weui_btn_job" v-if="f.color == '橘色'" style="background-color: #e58e69;">{{f.sign}}</span>
+					            	<span class="weui_btn weui_btn_job" v-if="f.color == '绿色'" style="background-color: #abd0c9;">{{f.sign}}</span>
+					            	<span class="weui_btn weui_btn_job" v-if="f.color == '紫色'" style="background-color: #c3b1dc;">{{f.sign}}</span>
+					            	<span class="weui_btn weui_btn_job" v-if="f.color == '粉色'" style="background-color: #ddacc1;">{{f.sign}}</span>
+					            	<span class="weui_btn weui_btn_job" v-if="f.color == '白色'" style="background-color: #000;">{{f.sign}}</span>
+					                <span class="personJob">{{f.content}}</span>
+				                </div>
+				                <div class="weui_cell_ft">
+				                    <input type="radio" name="radio1" class="weui_check" id="{{f.id}}" :value="f.id" v-model="checkedId">
+				                    <span class="weui_icon_checked"></span>
+				                </div>
+				            </label>		            
+			            </div>
+		            </div>
+				</div>
+			</template>
+			<!--公司信息-->
+			<template v-if="myCompany.show">
+				<div class="page" :class="{slideIn:myCompany.show}" id="pageCompany">
+					<div class="weui_cells weui_cells_access">
+						<div class="weui_cell">
+			                <div class="weui_cell_bd weui_cell_primary">
+				                <span>公司</span>
+				                <input id="myCompany" class="weui_input personInformation" type="text" placeholder="填输入公司名称" v-model="companyName">	                    
+			                </div>		                
+			           </div>
+		            </div>
+		            <div class="bottom_button" style="position:fixed;top: 60px;">
+                        <div class="weui_dialog_ft margin-top-0 no-border-top" style="line-height:38px;">
+                            <a class="weui_btn_dialog primary" @click="confirmCompany" style="margin:0px 40px;border-radius: 5px;background-color: #000;">保存</a>
+                        </div>
+                    </div>
+				</div>
+			</template>
+			<!--学校信息-->
+			<template v-if="mySchool.show">
+				<div class="page" :class="{slideIn:mySchool.show}" id="pageSchool">
+					<div class="weui_cells weui_cells_access">
+						<div class="weui_cell">
+			                <div class="weui_cell_bd weui_cell_primary">
+				                <span>学校</span>
+				                <input id="mySchool" class="weui_input personInformation" type="text" placeholder="填写学校,发现校友" v-model="schoolName">	                    
+			                </div>		                
+			           </div>
+		            </div>
+		            <div class="bottom_button" style="position:fixed;top: 60px;">
+                        <div class="weui_dialog_ft margin-top-0 no-border-top" style="line-height:38px;">
+                            <a class="weui_btn_dialog primary" @click="confirmSchool" style="margin:0px 40px;border-radius: 5px;background-color: #000;">保存</a>
+                        </div>
+                    </div>
+				</div>
+			</template>
+			<!--个人信息-->
+			<template v-if="myViod.show">
+				<div class="page" :class="{slideIn:myViod.show}" id="pageViod">
+					<div class="weui_cells" style="background-color: initial;">
+						<div class="weui_cell" style="background-color: #fff;padding:5px;">
+			                <textarea id="personalNote" placeholder="show出您的个性签名" rows="3" cols="50" maxlength="30" v-model="customer.customerDetail.personalNote" style="padding:5px;font-size:17px;"></textarea>
+			                <span class="remainWords">{{remainWords}}</span>
+			            </div>
+			            <div class="bottom_button" style="position:fixed;">
+	                        <div class="weui_dialog_ft margin-top-0 no-border-top" style="line-height:38px;">
+	                            <a class="weui_btn_dialog primary" @click="saveMyVoid" style="margin:0px 40px;border-radius: 5px;background-color: #000;">保存</a>
+	                        </div>
+	                    </div>
+		            </div>
+				</div>
+			</template>
+		</div>				
+		
+		<script src="../assets/js/zepto.min.js"></script>
+		<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+		<script src="../assets/js/vue.min.js"></script>		
+		<script src="../assets/js/custom/base/components.js"></script>
+		<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll.min.js"></script>
+		<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll-probe.min.js"></script>
+		<script type="text/javascript">
+			var baseUrl = getParam("baseUrl");
+			//baseUrl ="http://test.tt.com:8083";
+			
+			function iScrollClick() {
+		        if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)) return false;
+		        if (/Chrome/i.test(navigator.userAgent)) return (/Android/i.test(navigator.userAgent));
+		        if (/Silk/i.test(navigator.userAgent)) return false;
+		        if (/Android/i.test(navigator.userAgent)) {
+		            var s = navigator.userAgent.substr(navigator.userAgent.indexOf('Android') + 8, 3);
+		            return parseFloat(s[0] + s[3]) < 44 ? false : true
+		        }
+		    }
+			//禁止微信浏览器的默认滚动行为
+			document.addEventListener('touchmove', function (e) {
+		        e.preventDefault();
+		    }, false);
+			
+			/*正在加载弹窗*/
+			Vue.component("weui-loading", {
+			    props: ["msg", "show"],
+			    template: '<div class="weui_loading_toast" v-if="show">' +
+			    '	<div class="weui_mask_transparent" @click="close" style="background:#000;"></div>' +
+			    '	<div class="weui_toast" style="background: initial;width: 100%;height: 100%;top: 30%;left:0;margin-left:0;">' +
+			//	'		<img src="assets/img/loading1.gif" style="width: 12rem;height: 9rem;" />'+
+				'		<img src="../assets/img/restowechat.png" style="width: 8rem;height: 8rem;position: relative;" />'+	
+				'		<div class="programContainer">'+ 
+				'			<div class="progress">'+ 
+				'				<div class="progress-bar"></div>'+
+				'			</div>'+ 
+				'		</div>'+	
+			    '		<p style="font-size: 16px;">{{msg||"加载中，请稍候"}}</p>' +  
+			    '		<p class="footTitle" style="bottom:3rem;">Resto+</p>' +   
+			    '		<p class="footTitle">400-805-1711</p>'+
+			    '	</div>' +
+			    '</div>',
+			    methods: {
+			        close: function () {
+			           // this.show = false;
+			        }
+			    }
+			});
+			
+			Vue.component("weui-dialog-current", {
+			    props: ['show','msg','type'],
+			    mixins: [dialogMix],
+			    template: '<div class="weui_loading_toast" v-if="show">' +
+			    '<div class="weui_mask_transparent" @click="close" v-if="type && type != 5"></div>' +
+			    '<div class="weui_toast msg-dialog">' +		
+					'<img src="../assets/img/correctImg.png" class="msgImg" v-if="type && type == 1" />' +
+					'<img src="../assets/img/errorMsg.png" class="msgImg" v-if="type && type == 2" />' +
+//					'<img src="assets/img/empty.png" class="msgImg" v-if="type && type == 3" />' +
+//					'<img src="assets/img/loading.gif" class="msgImg" v-if="type && type == 4" />' +
+//					'<img src="assets/img/table.png" class="msgImg" v-if="type && type == 5" />' +
+			    	'<p>{{msg}}</p>' +
+			    '</div>' +
+			    '</div>',
+			    methods: {
+			        close: function () {
+			        	console.log(this.type);
+			            this.show = false;
+			        }
+			    }
+			});
+			/*获取当前用户信息*/
+			function getCustomer(sbc) {
+				$.ajax({
+					url : baseUrl+"/wechat/customer/new/info",
+					dataType:'json',
+					type:"post",
+					success : function(user) {
+						sbc && sbc(user.data);
+					}
+				});
+			}
+			/*获取职业信息*/
+			function getVocation(s){
+				$.ajax({
+					url:baseUrl+"/wechat/other/vocationlist",
+					dataType:'json',
+					type:"post",
+					success:function(result){
+						if(result.success){
+							s&&s(result.data);
+						}else{
+							s&&s(null);
+						}
+					}
+				});
+			}
+			/*修改个人信息*/
+			function modifyCustomerDetail(customerId, content, field,cbk){
+				$.ajax({
+					url:baseUrl+"/wechat/customer/new/modifyCustomer",
+					data:{customerId:customerId,content:content,field:field},
+					dataType:'json',
+					type:"post",
+					success:function(result){
+						cbk&&cbk(result);
+					}
+				});
+			}
+			/*保存生日年龄星座信息*/
+			function modifyBirthDate(customerId,birthDate,age,constellation,cbk){
+				$.ajax({
+					url:baseUrl+"/wechat/customer/new/modifyBirthDate",
+					data:{customerId:customerId,birthDate:birthDate,age:age,constellation:constellation},
+					dataType:'json',
+					type:"post",
+					success:function(result){
+						cbk&&cbk(result);
+					}
+				});
+			}
+		</script>				
+		
+		<script type="text/javascript">						
+			
+			var vm = new Vue({
+				el:"#vueControl",
+				data:function(){
+					return{
+						customer:{},
+						showCompanyIcons:false,
+						showSchoolIcons:false,
+						loadShow : false,
+						wMessage: {show: 0, message: "",type:null},				
+						agePage:{show:0},
+						vocation:[],
+						myAge:{show:false},
+						myJob:{show:false},
+						myCompany:{show:false},
+						mySchool:{show:false},
+						myViod:{show:false},						
+						checkedId : null,
+						remainWords : 30,
+						personAge:null,
+						starSign:'',
+						personDate:null,
+						age:"1985-01-01",
+						myVocation:null,
+						companyName:null,
+						schoolName:null,
+					}
+				},
+				watch: {
+					'customer.customerDetail.personalNote': function (newVal, oldVal) {
+						this.remainWords = 30 - newVal.length;
+					},
+					'age':function (newVal, oldVal){
+						this.personDate = newVal;
+						var nowYear = new Date().getFullYear(); //获取当前年份
+						var myYear = newVal.substring(0,4); //获取出生年份
+						var myMouth = newVal.substring(5,7); //获取出生月份
+						var myDay = newVal.substring(8,10); //获取出生天数
+						if(myYear >= nowYear){
+							this.personAge = 0;
+						}else{
+							this.personAge = nowYear - myYear;
+						}
+						this.starSign = this.getStarSign(myMouth,myDay);
+					},
+					'myAge.show':function(newVal, oldVal){
+						if(newVal){
+							if(this.age == "1985-01-01"){
+								setTimeout(function(){
+									$("#myAgeInput").focus();
+								},300);
+							}else{
+								$("#myAgeInput").attr("disabled",true);
+							}
+							//alert("出现了");
+						}
+					}
+				},
+				methods:{
+					getStarSign:function(month,day){
+						var s="魔羯座水瓶座双鱼座白羊座金牛座双子座巨蟹座狮子座处女座天秤座天蝎座射手座";
+					    var arr=[20,19,21,21,21,22,23,23,23,23,22,22];
+					    return s.substr(month*3-(day<arr[month-1]?3:0),3);
+					},
+					saveMyBirth:function(){
+						var that = this;
+						modifyBirthDate(that.customer.id,that.personDate,that.personAge,that.starSign,function(result){
+							if(result.success){
+								that.showSuccess("保存成功",1, 2000);
+							}
+						});
+						$("#pageAge").removeClass('slideIn').addClass('slideOut');
+						setTimeout(function(){
+				            that.myAge.show = false;
+						},300);
+						window.history.back(-1);
+					},
+					showAge:function(){
+						var that = this;
+						location.hash = '#age';
+						setTimeout(function(){
+				            that.myAge.show = true;
+						},300);
+					},
+					showJob:function(){
+						var that = this;
+						location.hash = '#job';
+						that.myJob.show = true;
+						Vue.nextTick(function () {
+							that.myScroll = new IScroll(".stopIscroll",{
+								click:true
+							});
+						});					
+					},
+					showCompany:function(){
+						var that = this;
+						setTimeout(function(){
+				            that.myCompany.show = true;
+						},300);
+						location.hash = '#company';
+					},
+					showSchool:function(){
+						var that = this;
+						setTimeout(function(){
+				            that.mySchool.show = true;
+						},300);
+						location.hash = '#school';
+					},
+					showViod:function(){
+						this.myViod.show = true;
+						location.hash = '#viod';
+					},
+					showSuccess: function (msg ,type, time) {
+			            this.wMessage.show = 1;
+			            this.wMessage.type = type;
+			            this.wMessage.message = msg;
+			            var that = this;
+			            setTimeout(function () {
+			                that.wMessage.show = 0;
+			            }, time || 1000);
+			        },
+					confirmCompany:function(){
+						var that = this;
+						if(this.companyName == null || this.companyName == ""){
+							this.showSuccess("请输入公司名称",2, 1000);
+						}else{
+							modifyCustomerDetail(this.customer.id,this.companyName,"company",function(result){
+								if(result.success){
+									that.showSuccess("保存成功",1, 1000);
+								}
+							});
+							$("#pageCompany").removeClass('slideIn').addClass('slideOut');
+							setTimeout(function(){
+					            that.myCompany.show = false;
+							},300);
+							window.history.back(-1);
+						}						
+					},
+					confirmSchool:function(){
+						var that = this;
+						if(this.schoolName == null || this.schoolName == ""){
+							this.showSuccess("请输入学校名称",2, 1000);
+						}else{
+							modifyCustomerDetail(this.customer.id,this.schoolName,"school",function(result){
+								if(result.success){
+									that.showSuccess("保存成功",1, 1000);
+								}
+							});
+							$("#pageSchool").removeClass('slideIn').addClass('slideOut');
+							setTimeout(function(){
+					            that.mySchool.show = false;
+							},300);
+							window.history.back(-1);
+						}
+					},
+					saveMyJob:function(f){
+						var that = this;
+						that.myVocation = f.content;
+						modifyCustomerDetail(that.customer.id,that.myVocation,"vocation",function(result){
+							if(result.success){
+								that.showSuccess("保存成功",1, 1000);
+							}
+						});
+						$("#pageJob").removeClass('slideIn').addClass('slideOut');
+						setTimeout(function(){
+				            that.myJob.show = false;
+						},300);
+						//window.history.back(-1);
+					},
+					saveMyVoid:function(){
+						var that = this;
+						this.customer.customerDetail.personalNote = $("#personalNote").val();
+						if(this.customer.customerDetail.personalNote == null || this.customer.customerDetail.personalNote == ""){
+							this.showSuccess("请输入个性签名",2, 1000);
+						}else{
+							modifyCustomerDetail(this.customer.id,this.customer.customerDetail.personalNote,"personalNote",function(result){
+								if(result.success){
+									that.showSuccess("保存成功",1,1000);
+								}
+							});
+							$("#pageViod").removeClass('slideIn').addClass('slideOut');
+							setTimeout(function(){
+					            that.myViod.show = false;
+							},300);
+							window.history.back(-1);
+						}
+						
+					}
+				},
+				created: function (){
+					var that = this;
+					this.loadShow = true;
+					getCustomer(function (customer) {
+						that.customer = customer;
+						if(customer.customerDetail.age == 0){
+							that.personAge = null;
+						}else{
+							that.personAge = customer.customerDetail.age;
+						}
+						if(customer.customerDetail.birthDate != null){
+							that.age = new Date(customer.customerDetail.birthDate.time).format("yyyy-MM-dd")
+						}
+						that.companyName = customer.customerDetail.company;
+						that.schoolName = customer.customerDetail.school;
+						that.starSign = customer.customerDetail.constellation;
+						that.myVocation = customer.customerDetail.vocation;						
+						getVocation(function(vocation){
+							//进入记住之前选择的职业
+							for(var i=0; i<vocation.length;i++){
+								if(vocation[i].content == that.customer.customerDetail.vocation){
+									that.checkedId = vocation[i].id
+								}
+							}
+							if(that.checkedId == null){
+								that.checkedId = vocation[0].id
+							}
+							that.vocation = vocation;							
+						});
+						that.loadShow = false;
+					});
+				},
+				ready:function(){
+					var that = this;
+					window.onhashchange = function changePage(e) {
+						if (/#.+/gi.test(e.newURL)) {
+				            return;
+				        }						
+						$("#pageAge").removeClass('slideIn').addClass('slideOut');
+						$("#pageJob").removeClass('slideIn').addClass('slideOut');
+						$("#pageCompany").removeClass('slideIn').addClass('slideOut');
+						$("#pageSchool").removeClass('slideIn').addClass('slideOut');
+						$("#pageViod").removeClass('slideIn').addClass('slideOut');
+						setTimeout(function(){
+				            that.myAge.show = false;
+				            that.myJob.show = false;
+				            that.myCompany.show = false;
+				            that.mySchool.show = false;
+				            that.myViod.show = false;				            
+						},300);
+			        }					
+				}
+			})
+			
+
+		</script>
+	</body>
+</html>

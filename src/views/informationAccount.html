@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<title>账户余额</title>
+	<!-- 禁止缩放 -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui" charset="UTF-8">
+	<link rel="stylesheet" href="../assets/css_old/base.css">
+	<link rel="stylesheet" href="../assets/css_old/global.css">
+	<link rel="stylesheet" href="../assets/css_old/iconfont.css">
+	<link rel="stylesheet" href="../assets/css_old/information.css">
+</head>
+<body style="height:100%;background:none;overflow: hidden;">
+	<!-- 内容开始 -->
+	<div class="content information informationAccount">
+		<div class="balance" style="border-radius: 10px 10px 0px 0px;padding: 12px 0px 25px 0px;">
+			<a href="javascript:()">
+				<span class="text-main" id="currentBalance"></span>
+				<span class="text-left priceText red" id="countBalance"></span>
+				<!--<span class="text-main" id="frozenText"></span>
+				<span class="text-right priceText" style="color: #85b8ea;top: initial;right: 5px;line-height: initial;" id="frozenMoney"></span>-->
+			</a>
+			<p style="margin: 0px 10px;">
+				<span class="text-main" id="frozenText"></span>
+				<span class="text-left priceText" style="color: #85b8ea;top: initial;right: 5px;line-height: initial;" id="frozenMoney"></span>
+			</p>
+			<p v-if="hasFrozenMoney" style="position: absolute;bottom: 6px;left: 10px;font-size: 12px;color: #999;">(2017/10/11 00:00:00后可用)</p>
+		</div>
+	</div>
+	<script src="../assets/js/zepto.min.js"></script>
+	<script src="../assets/js/custom/invoice/iscroll.js"></script>
+	<script src="../assets/js/vue1.0.17.min.js?v=345"></script>
+	<script src="../assets/js/custom/util.js"></script>
+	<script>		
+		var baseUrl = getParam("baseUrl");
+	</script>
+	
+	<div id="scroll-wapper" style="overflow: hidden;">
+		<ul class="runningList">
+			<li v-for="log in ConsumptionList">
+				<a>
+					<span class="left" style="color: #EA7D1B;top: 10px;font-size: 18px;font-weight: bold;" v-if="log.paymentType==2">-{{log.money}}</span>
+					<span class="left" style="color: #00CC00;top: 10px;font-size: 18px;font-weight: bold;" v-if="log.paymentType==1">+{{log.money}}</span>
+					<span class="left" style="color: #66B3FF;top: 10px;font-size: 18px;font-weight: bold;" v-if="log.paymentType==3">{{log.money}}</span>
+					<span class="left" style="color: #66B3FF;top: 10px;font-size: 18px;font-weight: bold;" v-if="log.paymentType==4">{{log.money}}</span>
+					<span class="left">{{log.remark}}</span>
+					<span class="right">{{log.createTime}}</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+
+	<script>
+		window.onload=function(){
+			var h = $(".informationAccount").height();
+			var bodyH = $("body").height();
+			$("#scroll-wapper").height(bodyH-h);					
+			document.addEventListener('touchmove', function(e) {
+			e.preventDefault();
+			}, false);
+		}		
+	</script>
+	<script>						
+		var vm=new Vue({
+			el: "body",
+			data: function(){
+	    		return{
+	    			ConsumptionList:[],
+	    			hasFrozenMoney:false,
+	    			iscScroll:null
+	    			//remain:"",
+		  		}; 
+		  	},			
+		  	created:function () {
+              	var that = this;
+              	$.ajax({ 
+	                url: baseUrl+'/wechat/customer/informationAccountAjax',
+	                dataType:'json',
+	                type:'post',
+//	                async:false,
+	                success:function(result) {
+						//that.remain=result.data.remain;
+						for(var i in result.data.accountLogs){
+							var log = result.data.accountLogs[i];
+							log.createTime = new Date(log.createTime.time).format("yyyy-MM-dd hh:mm");
+							that.ConsumptionList.push(log);							
+						}
+						$("#currentBalance").html("可用余额");
+						$("#countBalance").html("￥"+result.data.remain+"元");
+						if(result.data.frozenRemain > 0){
+							that.hasFrozenMoney = true;
+							$("#frozenText").html("冻结余额");
+							$("#frozenMoney").html("￥"+result.data.frozenRemain+"元");
+						}
+               		}
+                });
+            },  
+            ready:function(){
+            	var that = this;
+        		Vue.nextTick(function(){
+					setTimeout(function(){
+						that.iscScroll = new IScroll("#scroll-wapper",{
+							probeType : 2,
+						});
+					},1000);
+				})          		
+            },
+            methods:{
+            	hasPaymentType: function(log){
+            		var p = log.paymentType;
+            		if(p == 1){
+            			return true;
+            		} else {
+            			return false;
+            		}
+            	},
+            }
+		});
+	</script>
+</body>
+</html>

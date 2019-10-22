@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>我的评论</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+		<meta name="format-detection" content="telephone=no"/>
+		<link rel="stylesheet" href="../assets/css/weui.css" />
+		<link rel="stylesheet" href="../assets/css/total.css" />
+		<link href="../assets/css/Font-Awesome-3.2.1/css/font-awesome.min.css" rel="stylesheet">
+		<script src="../assets/js/custom/util.js"></script>
+		<style>
+			html,body {
+				font-family: "微软雅黑";
+				background: #fff;
+				height: 100%;
+				position: relative;			
+			}
+			.weui_cell {
+				border-bottom: 5px solid #e7e7e7;
+			}
+			.weui_cell_hd {
+				position: relative;
+				margin-right: 15px;
+			}
+			.weui_flex_item {
+				-webkit-box-flex: 1;
+			    -webkit-flex: 1;
+			    flex: 1;
+			    text-align: center;
+			}
+			.weui_flex_item span {
+				display: block;
+			}
+			.stopIscroll {
+				position: relative;
+				height: 100%;
+				overflow: hidden;				
+			}
+			
+			.flex-tab {
+			    display: -webkit-flex;
+			    display: flex;
+			    -webkit-justify-content: flex-start;
+			    justify-content: flex-start;
+			    flex-wrap: wrap;
+			    margin-left: 3.5rem;
+			    margin-top: 5px;
+			    margin-bottom: 5px;
+			    color: #979797;
+			}
+			.appraiseNum {
+			    float: left;
+			    color: #ff8832;
+			    font-size: 1.2rem;
+			    margin-left: 10px;
+			}
+			.appraiseText {
+				font-size: 0.9rem;
+				margin-left: 5rem;
+				margin-right: 10px;
+				color: #666;
+			}
+			.appraiseDate {   
+			    position: absolute;
+			    top: 35px;
+			    left: 5px;
+			    font-size: 0.7rem;
+			    color: #999;
+			}
+			.commentHeader {
+			    position: relative;
+			    padding-left: 5rem;
+			    height: 30px;
+			    font-size: 1rem;
+			    color: #666;
+			/*    border-bottom: 1px solid #eee;*/
+			}
+			.commentHeader img {
+			    width: 1.1rem;
+			    height: 1.1rem;
+			    position: absolute;
+			    left: -20px;
+			    top: 3px;
+			}
+			.commentHeader .commentLeft {
+			    position: absolute;
+			    right: 23%;
+			}
+			.commentHeader .commentRight {
+			    position: absolute;
+			    right: 2%;
+			}
+			.flex_item_table {
+			    padding: 5px 6px;
+			    width: 24%;
+			    text-align: center;
+			    border: 1px solid #979797;
+			    border-radius: 5px;
+			    margin: 2px 8px 4px 0px;
+			    font-size: 0.8rem;
+			    white-space: nowrap;
+			    text-overflow: ellipsis;
+    			overflow: hidden;
+			}
+			.flex_item_table:nth-child(3n+0) {
+				margin: 2px 0px 4px 0px;
+			}
+		</style>
+	</head>
+	<body id="vueControl" style="background: #fff;font-family: '微软雅黑';">
+		<div class="stopIscroll" style="display: none;">
+			<div>
+			
+			<div class="weui_cell">
+	            <div class="weui_cell_hd">
+	                <img :src="customer.headPhoto" style="width: 60px;height: 60px;display: block">
+	            </div>
+				<div class="weui_media_bd">
+					<span class="weui_media_title">{{customer.nickname}}</span>
+					<img class="customerSexSmall" src="../assets/img/man.png" v-if="customer.sex == 1" />
+                    <img class="customerSexSmall" src="../assets/img/woman.png" v-if="customer.sex == 2" />
+					<p class="weui_media_desc">手机号:{{customer.telephone||"未绑定"}}</p>
+	            </div>
+	        </div>
+        	
+	        <!--我的评论-->
+	        <div class="weui_cell" style="border-bottom: 2px solid #e7e7e7;">
+	            <div class="weui_flex_item">
+	            	<span style="font-weight: bold;">{{appraiseCount.appraiseCount}}</span>
+	            	<span style="color: #888888;">评论</span>
+	            </div>
+				<div class="weui_flex_item">
+	            	<span style="font-weight: bold;">{{appraiseCount.commentCount}}</span>
+	            	<span style="color: #888888;">回复</span>
+	            </div>
+	            <div class="weui_flex_item">
+	            	<span style="font-weight: bold;">{{appraiseCount.praiseCount}}</span>
+	            	<span style="color: #888888;">点赞</span>
+	            </div>
+	        </div>
+	        
+	        <div class="commentListInfor">
+		        <div class="comment" v-if="allSetting.appraiseEdition == 0" style="margin-top: 5px;border-bottom: 1px solid #e7e7e7;padding-bottom: initial;" v-for="appraise in appraiseAll" @click="showCommentDetails(appraise)">
+			        <div>
+		                <span style="font-size: 14px;font-weight: bold;position: relative;bottom: 4px;">{{new Date(appraise.createTime.time).format("MM月dd日")}}</span>
+		                <div style="display: inline-block;">
+		                    <start-span-image :level="appraise.level" v-bind:class="{bad:appraise.level<=4,good:appraise.level==5}"></start-span-image>		                    
+		                </div>                    
+			        </div>
+			        <p style="margin-left: 4rem;">{{appraise.content}}</p>			        
+			        <div style="margin-left: 4rem;">
+                        <span v-if="appraise.appraiseFiles.length == 1">
+                        	<a href="javascript:;" ontouchstart="return false;" v-for="f in appraise.appraiseFiles | orderBy \'sort\'">
+							  	<img :src="f.fileUrl" style="width: 100%;height: 100%;"/>
+							</a>                             
+                        </span>
+                        <span v-if="appraise.appraiseFiles.length >= 2">
+                        	<a href="javascript:;" ontouchstart="return false;" v-for="f in appraise.appraiseFiles">
+							  	<img :src="f.photoSquare" style="width: 30%;height: 30%;" />
+							</a>                        	
+                        </span>
+                    </div>			        
+		            <div class="commentHeader" style="font-size: 12px;margin-bottom: 4px;margin-top: 3px;">
+		                <span style="color: #636363;"><img src="../assets/img/sign.png" alt="标记" style="width: 15px;height: 15px;position: initial;"/>{{appraise.shopName}}</span>
+		                <span class="commentLeft" style="padding-left: 3px;">
+		                	<img src="../assets/img/comment.png" alt="评论">
+		                	<span v-if="appraise.appraiseComments.length">{{appraise.appraiseComments.length}}</span>
+		                </span>
+		                <span class="commentRight" style="padding-left: 3px;">
+		                	<img src="../assets/img/likes.png" alt="点赞" style="width: 15px;height: 15px;"/>
+		                    <span v-if="appraise.appraisePraises.length">{{appraise.appraisePraises.length}}</span>
+		                </span>
+		            </div>
+		        </div>
+		        
+		        <ul v-if="allSetting.appraiseEdition == 1">
+                	<li v-for="f in appraiseAll" @click="showCommentDetails(f)" style="border-bottom: 1px solid #e7e7e7;" >
+                		<div class="" style="position: relative;padding-top: 0.8rem;">
+                            <p class="appraiseNum">{{f.allGrade}}分</p>
+                            <p class="appraiseDate">{{f.createTime}}</p>
+	                        <p class="appraiseText">{{f.content}}</p>
+	                        <p class="flex-tab" style="margin-left: 5rem;">
+	                        	<span class="flex_item_table" v-for="(index,a) in f.appraiseGrades" >
+	                        		<i v-for="j in textList" v-if="j.grade == a.grade && index == 0">服务{{j.word}}</i>	
+	                        		<i v-for="j in textList" v-if="j.grade == a.grade && index == 1">环境{{j.word}}</i>
+	                        		<i v-for="j in textList" v-if="j.grade == a.grade && index == 2">性价比{{j.word}}</i>
+	                        		<i v-for="j in textList" v-if="j.grade == a.grade && index == 3">氛围{{j.word}}</i>
+	                        		<i v-for="j in textList" v-if="j.grade == a.grade && index == 4">出品{{j.word}}</i>
+	                        	</span>
+	                        </p>
+	                        <div class="flex_container_img" v-if="f.appraiseSteps.length == 1" style="margin: 0.6rem 0.5rem 0 5rem;width: initial;flex-wrap: wrap;">	
+	                        	<span v-for="img in f.appraiseSteps" class="commentBigImg" style="background:url({{img.pictureUrl}}) no-repeat;background-size: 100% 100%;" v-if="img.pictureUrl">
+	                        		<p class="bgImg">
+	                        			<img class="zanOrCaiImg" v-if="img.state == 1" src="../assets/img/btn_zan_selected.png" />
+	                        			<img class="zanOrCaiImg" v-if="img.state == 0" src="../assets/img/btn_cai_selected.png" />
+	                        		</p>		                        		
+	                        	</span>
+	                        	<span v-for="img in f.appraiseSteps" class="commentBigImg" style="background:url(../assets/img/restowechat.png) no-repeat;background-size: 100% 100%;" v-if="!img.pictureUrl">
+	                        		<p class="bgImg">
+	                        			<img class="zanOrCaiImg" v-if="img.state == 1" src="../assets/img/btn_zan_selected.png" />
+	                        			<img class="zanOrCaiImg" v-if="img.state == 0" src="../assets/img/btn_cai_selected.png" />
+	                        		</p>		                        		
+	                        	</span>		                        	
+	                        </div>
+	                        <div class="flex_container_img" v-if="f.appraiseSteps.length > 1" style="margin: 0.6rem 0.5rem 0 5rem;width: initial;flex-wrap: wrap;">
+	                        	<span v-for="(index,img) in f.appraiseSteps" class="commentSmallImg" style="background:url({{img.pictureUrl}}) no-repeat;background-size: 100% 100%;" v-if="img.pictureUrl && index<9">
+	                        		<p class="bgImg">
+	                        			<img class="zanOrCaiImg" v-if="img.state == 1" src="../assets/img/btn_zan_selected.png" />
+	                        			<img class="zanOrCaiImg" v-if="img.state == 0" src="../assets/img/btn_cai_selected.png" />
+	                        		</p>		                        		
+	                        	</span>
+	                        	<span v-for="(index,img) in f.appraiseSteps" class="commentSmallImg" style="background:url(../assets/img/restowechat.png) no-repeat;background-size: 100% 100%;" v-if="!img.pictureUrl && index<9">
+	                        		<p class="bgImg">
+	                        			<img class="zanOrCaiImg" v-if="img.state == 1" src="../assets/img/btn_zan_selected.png" />
+	                        			<img class="zanOrCaiImg" v-if="img.state == 0" src="../assets/img/btn_cai_selected.png" />
+	                        		</p>		                        		
+	                        	</span>		                        	
+	                        </div>		                        
+	                    </div>
+	                    <div class="commentHeader">
+                            <span class="commentLeft"><img src="../assets/img/likes.png" alt="点赞" style="left: -22px;" />{{f.appraisePraises.length}}</span>
+                            <span class="commentRight"><img src="../assets/img/comment.png" alt="评论" style="left: -22px;" />{{f.appraiseComments.length}}</span>
+                        </div>
+                	</li>	
+                </ul>
+		        
+		        <div v-if="appraiseCount.appraiseCount">
+			        <div class="weui_cell font-mini" v-if="isLoad">
+	                    <p><i class="icon-spinner icon-spin"></i>正在加载中...</p>
+	                </div>
+	                <div class="weui_cell font-mini" v-if="isOver">
+	                    <p><i class="icon-ok"></i>已经全部加载完成</p>
+	                </div>
+                </div>
+                <!--当用户评论为空时显示-->
+                <div class="emptyComment" v-if="!appraiseCount.appraiseCount">
+					<img src="../assets/img/emptyComment.png" alt="评论为空" />
+					<p>还没有收到称赞</p>
+					<p>快去评论吧 !</p>
+				</div>	
+			</div>
+					
+		    </div>		    
+            <weui-loading :show.sync="loadShow"></weui-loading> 
+            
+        </div>
+
+		<script type="text/javascript">
+			var baseUrl = getParam("baseUrl");
+			//baseUrl ="http://test0001.tt.com:8081";
+		</script>
+        <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+		<script src="//res.wx.qq.com/open/js/jweixin-1.0.0.js" ></script>
+		<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+		<script src="../assets/js/vue1.0.17.min.js?v=3456"></script>
+		<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll.min.js"></script>
+		<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll-probe.min.js"></script>
+		<script src="../assets/js/custom/wxFunction.js"></script>
+		<script src="../assets/js/custom/service.js"></script>
+		<script src="../assets/js/custom/base/components.js"></script>
+		<script src="../assets/js/custom/base/page/home-page.js"></script>
+		<script src="../assets/js/custom/base/page/tangshi-page.js"></script>
+
+		<script type="text/javascript">
+			function iScrollClick() {
+				if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)) return false;
+				if (/Chrome/i.test(navigator.userAgent)) return (/Android/i.test(navigator.userAgent));
+				if (/Silk/i.test(navigator.userAgent)) return false;
+				if (/Android/i.test(navigator.userAgent)) {
+					var s = navigator.userAgent.substr(navigator.userAgent.indexOf('Android') + 8, 3);
+					return parseFloat(s[0] + s[3]) < 44 ? false : true
+				}
+			}
+			
+			/*正在加载弹窗*/
+			Vue.component("weui-loading", {
+			    props: ["msg", "show"],
+			    template: '<div class="weui_loading_toast" v-if="show">' +
+			    '	<div class="weui_mask_transparent" @click="close" style="background:#000;"></div>' +
+			    '	<div class="weui_toast" style="background: initial;width: 100%;height: 100%;top: 30%;left:0;margin-left:0;">' +
+			//	'		<img src="assets/img/loading1.gif" style="width: 12rem;height: 9rem;" />'+
+				'		<img src="../assets/img/restowechat.png" style="width: 8rem;height: 8rem;position: relative;" />'+	
+				'		<div class="programContainer" style="top:120px;">'+ 
+				'			<div class="progress">'+ 
+				'				<div class="progress-bar"></div>'+
+				'			</div>'+ 
+				'		</div>'+	
+			    '		<p style="font-size: 16px;">{{msg||"加载中，请稍候"}}</p>' +  
+			    '		<p class="footTitle" style="bottom:3rem;">Resto+</p>' +   
+			    '		<p class="footTitle">400-805-1711</p>'+
+			    '	</div>' +
+			    '</div>',
+			    methods: {
+			        close: function () {
+			           // this.show = false;
+			        }
+			    }
+			});
+			
+			var rand = "";
+			for (var i = 0; i < 3; i++) {
+			    var r = Math.floor(Math.random() * 10);
+			    rand += r;
+			}
+			
+			var allSetting = new Object();
+			$.ajax({
+			    url: baseUrl + "/wechat/setting",
+			    data: {"random": rand},
+			    async: false,
+			    success: function (result) {
+			        allSetting = result.data;
+			    }
+			});
+		</script>
+		
+		<script>
+			var vm = new Vue({
+				el:"#vueControl",
+				data: function () {
+					return {
+						customer:{},
+						appraiseCount:{},
+						currentPage:0,
+						showCount:3,
+						appraiseAll:[],
+						//customerAppraiseList:[],
+						isLoad:false,
+						isOver:false,
+						myScroll : null,
+						loadShow : false,
+						textList:[
+							{
+								grade:20,
+								word:"非常差"
+							},
+							{
+								grade:40,
+								word:"差"
+							},
+							{
+								grade:60,
+								word:"一般"
+							},
+							{
+								grade:80,
+								word:"满意"
+							},
+							{
+								grade:100,
+								word:"超赞"
+							}
+						],
+						allSetting:allSetting
+					};
+				},
+				methods:{
+					reflushIsc:function(){
+						var that = this;
+						if(!this.myScroll){
+							that.myScroll = new IScroll(".stopIscroll",{
+								probeType : 2,
+								click:iScrollClick(),
+								click:true,
+							});
+							that.loadShow = false;
+							
+							this.myScroll.refresh();
+							this.myScroll.on("scrollEnd",function(){
+								if (this.y <= this.maxScrollY) {
+									that.loadNextPage();
+									this.refresh();
+								}
+							});
+						}
+						this.myScroll.refresh();
+					},
+					loadNextPage:function() {
+						var that = this;
+						if (!that.isLoad && !that.isOver) {
+							that.isLoad = true;
+							var option = {
+								currentPage: that.currentPage,
+								showCount: that.showCount
+							};
+							if(allSetting.appraiseEdition == 1){
+								customerAppraiseAll(option, function (result) {
+									for (var i in result) {
+										that.appraiseAll.push(result[i]);
+									}
+									if(that.appraiseCount.appraiseCount<that.currentPage){
+										that.isOver=true;
+									}
+									that.isLoad = false;
+								});
+							}else{
+								appraiseAll(option, function (result) {
+									for (var i in result) {
+										that.appraiseAll.push(result[i]);
+										for(var k in result[i].appraiseFiles){
+											var af = result[i].appraiseFiles[k];
+											af.fileUrl = getPicUrl(af.fileUrl);
+											af.photoSquare = getPicUrlSquare(af.photoSquare);
+										}
+									}
+									if(that.appraiseCount.appraiseCount<that.currentPage){
+										that.isOver=true;
+									}
+									that.isLoad = false;
+								});
+							}														
+							that.currentPage = that.currentPage + that.showCount;
+						}
+					},
+					showCommentDetails:function(appraise){						
+						if(allSetting.appraiseEdition == 1){
+							//window.location.href = "/wechatNew/src/views/myCommentDetails.html?appraiseId="+appraise.appraiseId;
+							location.href = baseUrl + "/restowechat/src/views/myCommentDetails.html?appraiseId="+appraise.appraiseId+"&baseUrl="+baseUrl;
+						}else{
+							//window.location.href = "/wechatNew/src/views/myCommentDetails.html?appraiseId="+appraise.id;
+							location.href = baseUrl + "/restowechat/src/views/myCommentDetails.html?appraiseId="+appraise.id+"&baseUrl="+baseUrl;
+						}						
+					}
+				},
+				created: function (){
+					var that = this;
+					this.loadShow = true;					
+					getCustomer(function (customer) {
+						that.customer = customer;
+					});
+					if(allSetting.appraiseEdition == 0){
+						appraiseCount(function (result) {
+							that.appraiseCount = result;
+						});
+					}else{
+						getCustomerAppraiseCount(function (result) {
+							that.appraiseCount = result.data;
+							that.loadShow = false;
+						});	
+					}																			
+				},
+				ready:function(){
+					$(".stopIscroll").css("display","block");
+					var that = this;
+					this.loadNextPage();
+					this.$watch("appraiseAll",function(){
+						Vue.nextTick(function(){
+							setTimeout(function(){
+								that.reflushIsc();
+							},50);
+						});
+					});																				
+				}
+			})
+		</script>
+	</body>
+</html>

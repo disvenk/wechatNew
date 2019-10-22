@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>返利足迹</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+		<meta name="format-detection" content="telephone=no"/>
+		<link href="../assets/css/weui.css" rel="stylesheet">
+		<link href="../assets/css/Font-Awesome-3.2.1/css/font-awesome.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="../assets/css/total.css" />
+		<script src="../assets/js/custom/util.js"></script>
+		<style>
+			html,body {
+				font-family: "微软雅黑";
+				background: #fff;
+				height: 100%;
+				position: relative;
+				overflow-y: hidden;
+				font-size: 14px;	
+/*				box-sizing: border-box;	*/	
+			}
+			i {
+				font-style: normal;
+			}
+			.weui_cell:before {
+				border-top: none;
+			}
+			.full-height {
+				position: relative;
+				height: 100%;
+				box-sizing: content-box;
+			}
+			.person_infor {
+			    position: relative;
+			    border-bottom: 5px solid #f2f2f2;
+		        box-sizing: content-box;
+			}
+			.headerPhoto {
+			    text-align: center;
+			    position: relative;
+			    padding-top: 15px;
+			}
+			.personName {
+			    text-align: center;
+			    position: relative;
+			    display: table;
+			    width: 100%;
+			    font-size: 20px;
+			}
+			.headerImg {
+				width: 5rem;
+				height: 5rem;
+				border-radius: 50%;
+			}			
+			.middle {
+			    display: table-cell;
+			    vertical-align: middle;
+			}
+			.weui_flex_item {
+			    -webkit-box-flex: 1;
+			    -webkit-flex: 1;
+			    flex: 1;
+			    text-align: center;
+		        border-right: 1px solid #F2F2F2;
+			}
+			.weui_flex_item:last-child {
+				border-right: initial;
+			}
+			.weui_flex_item .headerCount {
+			    font-weight: bolder;
+			    font-size: 1.5rem;
+			}
+			.weui_flex_item .headerText {
+			    font-size: 1rem;
+			    color: #b1aeae;
+			}
+			.weui_flex_item span {
+			    display: block;
+			}
+			/*个人返利足迹*/
+			.runningList>li {
+			    height: 70px;
+			    padding-left: 90px;
+			    list-style: none;
+			    position: relative;
+			}
+			.runningList>li:before {
+		        content: "";
+			    display: block;
+			    position: absolute;
+			    left: 63px;
+			    top: 33%;
+			    width: 6px;
+			    height: 6px;
+			    background: #00CC00;
+			    border-radius: 50%;
+			    margin-top: -7px;
+			}
+			.runningList>li:after {
+			    content: "";
+			    display: block;
+			    height: 100%;
+			    width: 1px;
+			    background: #b1aeae;
+			    position: absolute;
+			    left: 66px;
+			    top: 0;
+			}
+			.runningList>li>a {
+			    display: block;
+			    position: relative;
+			    height: 100%;
+			    padding-left: 0;
+			    -webkit-tap-highlight-color: transparent;
+			}
+			.runningList>li>a>span.left:first-child.minus {
+			    color: #00CC00;
+			    top: 10px;
+			    font-size: 20px;
+			}
+			.runningList>li>a>span.left:nth-child(2) {
+			    bottom: 0px;
+			}
+			.runningList>li>a>span.left {
+			    position: absolute;
+			    left: 0;
+			    font-size: 16px;
+			    color: #b1aeae;
+			    width: 100%;
+			}
+			.smallImg {
+				width: 30px;
+				height: 30px;
+				border-radius: 50%;
+				vertical-align: middle;
+			}
+			.recordText {
+				width: 80%;
+				vertical-align: middle;
+				overflow: hidden;
+				text-overflow:ellipsis;
+				white-space: nowrap;
+				display: inline-block;
+			}
+			.recordDate {
+			    position: absolute;
+			    left: 12px;
+			    top: 7px;
+			    font-size: 1rem;
+			    color: #b1aeae;
+			}
+			.btn{
+	            background-color: #2dcc70;
+			    color: #fff;
+			    display: block;
+			    padding: 8px 12%;
+			    border-radius: 4px;
+			    font-size: 16px;
+			    text-align: center;
+			    margin: 0 auto;                    
+	        }
+	        .noRecord {
+	        	position: relative;
+	        	text-align: center;
+	        	margin-top: 12%;
+	        }
+	        .programContainer {
+			    top: 110px;
+			}
+	        @media screen and (min-width: 374px) {
+	        	html,body {
+					font-size: 15px;			
+				}
+				.noRecord {
+		        	position: relative;
+		        	text-align: center;
+		        	margin-top: 20%;
+		        }
+			}
+			.flex-list {
+			    display: -webkit-flex;
+			    display: flex;
+			    -webkit-justify-content: space-between;
+			    justify-content: space-between;
+			    width: 100%;
+			    font-size: 1.2rem;
+			    color: #00CC00;
+			}
+			.flex-record.active {
+			    border-bottom: 3px solid #00CC00;
+			}
+			.hasRecord {
+				position: relative;
+				box-sizing: border-box;
+			}
+			.scroll-wapper {
+				position: relative;
+			}
+		</style>
+	</head>
+	<body id="app">
+		<div class="full-height" style="display: none;">
+			<!--个人信息-->
+        	<div class="person_infor">
+				<div class="headerPhoto">
+					<img class="headerImg" :src="customer.headPhoto" alt="" />					
+				</div>
+				<div class="personName">
+					<div class="middle">
+						<span>{{customer.nickname}}</span>
+					</div>					
+				</div>
+				<div class="weui_cell">
+		            <div class="weui_flex_item">
+		            	<span class="headerCount">{{record.count ? record.count : 0}}</span>
+		            	<span class="headerText">邀请人数</span>
+		            </div>
+					<div class="weui_flex_item">
+		            	<span class="headerCount">{{record.number ? record.number : 0}}</span>
+		            	<span class="headerText">返利次数</span>
+		            </div>
+		            <div class="weui_flex_item">
+		            	<span class="headerCount">￥{{record.sumMoney ? record.sumMoney : 0}}</span>
+		            	<span class="headerText">返利金额</span>
+		            </div>
+		        </div>			
+			</div>
+			<!--没有足迹-->
+			<div class="noRecord" v-if="!record.count">
+				<img src="../assets/img/noRecord.png" style="width: 8rem;height: 8rem;" />
+				<div style="color: #b1aeae;font-size: 18px;padding: 10px;">邀请好友,领取分享返利</div>
+				<button class="btn btn-blue" @click="inviteFriend">邀请好友</button>
+			</div>
+			
+			<div class="hasRecord" v-if="record.count">
+				<div class="weui-cell" style="padding: 10px 20%;">
+		        	<div class="flex-list">
+					  	<div class="flex-record" :class="{active:type.state == currentType}" v-for="type in typeList" @click="choiceType(type)">
+					  		<span>{{type.name}}</span>				  							  		
+					  	</div>
+					</div>
+		        </div>
+		        <!--返利记录-->
+		        <div class="scroll-wapper" v-if="currentType == 1">
+		        	<div>
+		        	<div style="position: relative;" v-for="f in recordList">
+						<span class="recordDate" >{{new Date(f.createTime.time).format("MM-dd")}}</span>
+						<!--<span class="recordDate" v-if="nowDate == new Date(f.createTime.time).format('MM-dd')">今日</span>	-->
+						<ul class="runningList">
+							<li>
+								<a>
+									<span class="left minus">+￥{{f.value}}</span>
+									<span class="left" v-if="!f.nickName">
+										<img class="smallImg" src="../assets/img/restowechat.png" />
+										<i class="recordText">来自好友{{f.shopName}}的消费返利</i>
+									</span>
+									<span class="left" v-if="f.nickName">
+										<img class="smallImg" :src="f.headPhoto" />
+										<i class="recordText">来自好友{{f.nickName}}在{{f.shopName}}的消费返利</i>
+									</span>
+								</a>
+							</li>
+						</ul>						
+					</div>
+					<!--加载中-->
+						<div class="weui_cell font-mini" v-if="isLoad">
+	                        <p><i class="icon-spinner icon-spin"></i>正在加载中...</p>
+	                    </div>
+	                    <div class="weui_cell font-mini" v-if="isOver">
+	                        <p><i class="icon-ok"></i>已经全部加载完成</p>
+	                    </div>
+					</div>
+		        </div>
+				
+				<!--邀请记录-->
+				<div class="scroll-wapper" v-if="currentType == 2">
+		        	<div>
+					<div style="position: relative;" v-for="f in inviteList">
+						<span class="recordDate" style="top: 3px;">{{new Date(f.createTime.time).format("MM-dd")}}</span>
+						<ul class="runningList">
+							<li style="height: 50px;">
+								<a>
+									<span class="left">
+										<img class="smallImg" :src="f.headPhoto" />
+										<i class="recordText">好友{{f.nickname}}接受了你的邀请</i>
+									</span>
+								</a>
+							</li>
+						</ul>						
+					</div>	
+					
+					<!--加载中-->
+					<div class="weui_cell font-mini" v-if="isLoad">
+                        <p><i class="icon-spinner icon-spin"></i>正在加载中...</p>
+                    </div>
+                    <div class="weui_cell font-mini" v-if="isOver">
+                        <p><i class="icon-ok"></i>已经全部加载完成</p>
+                    </div>
+					</div>	
+				</div>
+			</div>		
+            <weui-loading :show.sync="loadShow"></weui-loading> 
+            
+        </div>
+
+		<script type="text/javascript">
+			var baseUrl = getParam("baseUrl");
+//	        baseUrl = "http://test.tt.com:8085";
+		</script>
+        <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+		<script src="//res.wx.qq.com/open/js/jweixin-1.0.0.js" ></script>
+		<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+		<script src="../assets/js/vue1.0.17.min.js?v=2323"></script>
+		<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll.min.js"></script>
+		<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll-probe.min.js"></script>
+		<script src="../assets/js/custom/wxFunction.js"></script>
+		<script src="../assets/js/custom/service.js"></script>
+		<script src="../assets/js/custom/base/components.js"></script>
+
+		<script type="text/javascript">
+			document.addEventListener('touchmove', function (e) {
+				e.preventDefault();
+			}, false);
+			
+			function iScrollClick() {
+				if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)) return false;
+				if (/Chrome/i.test(navigator.userAgent)) return (/Android/i.test(navigator.userAgent));
+				if (/Silk/i.test(navigator.userAgent)) return false;
+				if (/Android/i.test(navigator.userAgent)) {
+					var s = navigator.userAgent.substr(navigator.userAgent.indexOf('Android') + 8, 3);
+					return parseFloat(s[0] + s[3]) < 44 ? false : true
+				}
+			}
+			
+			/*正在加载弹窗*/
+			Vue.component("weui-loading", {
+			    props: ["msg", "show"],
+			    template: '<div class="weui_loading_toast" v-if="show">' +
+			    '	<div class="weui_mask_transparent" @click="close" style="background:#000;"></div>' +
+			    '	<div class="weui_toast" style="background: initial;width: 100%;height: 100%;top: 30%;left:0;margin-left:0;">' +
+				'		<img src="../assets/img/restowechat.png" style="width: 8rem;height: 8rem;position: relative;" />'+	
+				'		<div class="programContainer">'+ 
+				'			<div class="progress">'+ 
+				'				<div class="progress-bar"></div>'+
+				'			</div>'+ 
+				'		</div>'+	
+			    '		<p style="font-size: 16px;">{{msg||"加载中，请稍候"}}</p>' +  
+			    '		<p class="footTitle" style="bottom:3rem;">Resto+</p>' +   
+			    '		<p class="footTitle">400-805-1711</p>'+
+			    '	</div>' +
+			    '</div>',
+			    methods: {
+			        close: function () {
+			           // this.show = false;
+			        }
+			    }
+			});
+		</script>
+		
+		<script>
+			var vm = new Vue({
+				el:"#app",
+				data: function () {
+					return {
+						customer:{},
+						record:{},						
+						loadShow:false,
+						currentPageA:0,
+						showCountA:6,
+						currentPageB:0,
+						showCountB:6,
+						recordList:[],
+						inviteList:[],
+//						date:null,
+						typeList:[
+							{
+			            		state:1,
+			            		name:"返利记录"
+			            	},
+			            	{
+			            		state:2,
+			            		name:"邀请记录"
+			            	}
+						],
+						currentType:1,
+						scrollIsc:null,
+						pageType:null,
+						isLoad:false,
+						isOver:false
+					};
+				},
+				methods:{
+					reflushIsc:function(){
+						var that = this;
+						if(that.currentType){
+				            resetWindow();		
+							var dis = $(that.$el).find(".scroll-wapper");
+			                var totalHeight = dis.parent().height();
+			                var otherHeight = 0;
+			                dis.siblings().each(function () {
+			                    var he = $(this).outerHeight(true);
+			                    otherHeight += he;
+			                })
+			                var remainHeight = totalHeight - otherHeight-10;
+			                var h = dis.height();
+			                dis.height(remainHeight);
+			                dis.css({
+			                    overflow: "hidden"
+			                });								
+							this.scrollIsc = new IScroll(dis.get(0),{
+								click:iScrollClick
+							});
+
+							this.scrollIsc.refresh();
+							this.scrollIsc.on("scrollEnd",function(){
+								if (this.y <= this.maxScrollY) {
+									that.loadNextPage();
+								}
+							});
+						}
+						that.scrollIsc.refresh();
+					},
+					loadNextPage:function(){
+						var that = this;
+						if(!that.isLoad && !that.isOver){
+							that.isLoad = true;
+							if(that.currentType == 1){
+								getShareMoney(that.customer.id,that.currentPageA,that.showCountA,function(result){
+									for (var i in result) {
+										that.recordList.push(result[i]);								
+									}
+									if(that.record.number<that.currentPageA){
+										that.isOver=true;
+									}
+									that.isLoad = false;													
+								});
+								that.currentPageA = that.currentPageA+that.showCountA;
+							}else{
+								getShareCustomer(that.customer.id,that.currentPageB,that.showCountB,function(result){
+									for (var i in result) {
+										that.inviteList.push(result[i]);
+									}
+									if(that.record.count<that.currentPageB){
+										that.isOver=true;
+									}
+									that.isLoad = false;													
+								});
+								that.currentPageB = that.currentPageB+that.showCountB;
+							}																												
+						}
+					},
+					inviteFriend:function(){
+//						window.location.href = "/wechatNew/src/index.html?dialog=invite&loginpage="+this.pageType+"#my";
+						location.href = baseUrl + "/restowechat/src/index.html?dialog=invite&baseUrl="+baseUrl+"&loginpage="+this.pageType+"#my";
+					},
+					choiceType:function(type){
+						var that = this;
+						this.currentType = type.state;
+						if(that.currentType == 1){
+							getShareMoney(that.customer.id,that.currentPageA,that.showCountA,function(result){
+								for (var i in result) {
+									that.recordList.push(result[i]);								
+								}
+								if(that.record.number<that.currentPageA){
+									that.isOver=true;
+								}
+								that.isLoad = false;													
+							});
+							that.currentPageA = that.currentPageA+that.showCountA;
+						}else{
+							getShareCustomer(that.customer.id,that.currentPageB,that.showCountB,function(result){
+								for (var i in result) {
+									that.inviteList.push(result[i]);
+								}
+								if(that.record.count<that.currentPageB){
+									that.isOver=true;
+								}
+								that.isLoad = false;													
+							});
+							that.currentPageB = that.currentPageB+that.showCountB;
+						}
+						Vue.nextTick(function(){
+							setTimeout(function(){
+								that.reflushIsc();
+							},1000)	
+						})											
+					}	
+				},				
+				created: function (){
+					var that = this;
+					if(getParam("loginpage") != null && getParam("loginpage") != ""){
+					    that.pageType = getParam("loginpage");
+					}
+//					that.nowDate= new Date().format("MM-dd");					
+					that.loadShow = true;
+					getCustomer(function (customer) {
+						that.customer = customer;
+						shareCustomerCount(customer.id,function(result){
+							that.record = result;
+							that.loadShow = false;																	
+						});	
+					})	
+				},
+				ready:function(){
+					var that = this;					
+					$(".full-height").css("display","block");
+					this.loadNextPage();
+					if(that.currentType==1){
+						this.$watch("recordList",function(){
+							Vue.nextTick(function(){
+								setTimeout(function(){
+									that.reflushIsc();
+								},1000);
+							});
+						});
+					}else if(that.currentType==2){
+						this.$watch("inviteList",function(){
+							Vue.nextTick(function(){
+								setTimeout(function(){
+									that.reflushIsc();
+								},1000);
+							});						
+						});
+					}					
+				}
+			})
+			
+			function resetWindow() {
+			    var main_menu = $(".person_infor")
+			    var content = $(".hasRecord");
+			    var height = $(window).height();
+			    content.height(height - main_menu.height());
+			    content.css({
+			        overflow: "hidden",
+			        position: "relative"
+			    })			    
+			}
+		</script>
+	</body>
+</html>

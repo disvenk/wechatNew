@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+	    <meta name="format-detection" content="telephone=no"/>
+	    <meta name="x5-orientation"content="portrait">
+	    <META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	    <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+    	<META HTTP-EQUIV="expires" CONTENT="0">
+    	<link rel="stylesheet" type="text/css" href="assets/css/weui.css"/>
+		<link rel="stylesheet" type="text/css" href="assets/css/soup-total.css"/>
+    	<link rel="stylesheet" type="text/css" href="assets/css/soup.css"/>
+		<link href="assets/css/Font-Awesome-3.2.1/css/font-awesome.min.css" rel="stylesheet">
+		<link href="assets/css/iconcode/iconcode.css" rel="stylesheet">
+    	<link href="assets/css/iconfont/iconfont.css" rel="stylesheet">
+    	<script src="assets/js/custom/util.js"></script>
+		<style type="text/css">
+			@media screen and (min-width: 360px) {
+				html,body {
+					font-size: 15px;
+				}
+			}
+			@media screen and (min-width: 410px) {
+				html,body {
+					font-size: 16px;
+				}
+			}
+			.moneyStyle {
+				color: #d21a32;
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body id="app" style="display: none;">
+		<div class="full-height">
+			
+			<div class="weui_cell" style="background: #f5f5f5;color: #9c9c9c;">
+                <div class="weui_cell_bd weui_cell_primary">
+                    <p>底料推荐</p>
+                </div>
+                <div class="weui_cell_ft" style="color: #9c9c9c;" @click="passEdit">跳过</div>
+            </div>
+			
+			<div id="scrollList">
+				<!-- 单品 -->
+				<div>
+					<div class="art-item" v-for="a in soupList" v-if="a.articleType==1&&!a.weightPackageId&&!a.recommendId" :class="{'has-fans':a.fansPrice||a.fansPrice&&a.articlePrices.length==0}" style="background: url({{a.gifUrl ? a.gifUrl : 'assets/img/articleWhtie.jpg' }}) no-repeat;background-size: 100% 100%;">
+		                <p>
+		                    <span class="art-name">{{a.name}}</span>
+		                    <span class="art-price price"> {{a.price}} / {{a.unit}}</span>
+		                </p>
+		                <div v-if="a.fansPrice">
+		                    <span class="fans-price-item">{{shopInfo.fansName}}:{{a.fansPrice}}元</span>
+		                </div>
+		                <article-operator :style="{color:a.controlColor}" v-if="a.articleType==1"
+		                      :article.sync="a" @add="addToShopCart"
+		                      @cut="cutToShopCart"></article-operator>
+		            </div>
+					<!-- 非纯单品 -->
+					<div class="art-item" ontouchend="click()" @click="showActionSoup(a)" v-for="a in soupList" v-if="a.articleType==1&&(a.weightPackageId||a.recommendId)" :class="{'has-fans':a.fansPrice||a.fansPrice&&a.articlePrices.length==0}" style="background: url({{a.gifUrl ? a.gifUrl : 'assets/img/articleWhtie.jpg' }}) no-repeat;background-size: 100% 100%;">
+						<p>
+							<span class="art-name">{{a.name}}</span>
+							<span class="art-price price"> {{a.price}} / {{a.unit}}</span>
+						</p>
+						<div v-if="a.fansPrice">
+							<span class="fans-price-item">{{shopInfo.fansName}}:{{a.fansPrice}}元</span>
+						</div>
+						<div class="numberControl" :style="{color:a.controlColor}">
+                            <span v-if="a.isEmpty">已售罄</span>
+                            <span class="plus-span" v-else><i class="icon iconfont plus">&#xe6cd;</i></span>
+                        </div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- 选择菜品的重量包  推荐包 -->
+			<div class="weui_dialog_alert" v-if="currentArticle&&currentArticle.articleType==1">
+				<div class="weui_mask pop_up" style="z-index: 300;"></div>
+				<div class="weui_dialog dish_details" style="z-index: 300;"
+					 :class="{'singleMeal': unitArr.length==0 && currentArticle.articlePrices.length == 0,'shenjing':currentArticle.recommendId && !currentArticle.isEmpty,'saleEmpty':currentArticle.isEmpty && currentArticle.recommendId}">
+					<div class="full-height" id="weightScroll">
+
+						<div class="weui_dialog_bd" v-if="!currentArticle.recommendId">
+							<div class="art-image" style="background:url({{currentArticle.photoSmall || 'assets/img/resto.png'}}) no-repeat;background-size: 100% 100%;"></div>
+							<!--<img class="art-image" :src="currentArticle.photoSmall||'assets/img/resto.png'"/>-->
+							<span class="article-likes">
+			            		<i class="icon icon-heart"></i>
+			            		{{currentArticle.likes}}
+			            	</span>
+						</div>
+
+						<div class="weui_dialog_bd" v-if="currentArticle.recommendId">
+							<div class="form-group">
+								<p><span class="meals-name">{{currentArticle.name}}</span></p>
+							</div>
+							<div class="meal-div" id="recommendImg" v-if="currentArticle.showBig">
+								<ul class="aatv">
+									<!--默认显示主品图片-->
+									<li class="flex-container">
+										<div class="flex-item" style="background:url({{currentArticle.photoSmall}}) no-repeat;background-size: 100% 100%;"></div>
+									</li>
+									<!--推荐餐包图片-->
+									<li class="flex-container" v-if="!recommendImg.show" v-for="recommendImg in recommendList.items">
+										<div class="flex-item" style="background:url({{recommendImg.imageUrl}}) no-repeat;background-size: 100% 100%;"></div>
+									</li>
+								</ul>
+								<div class="clearfix"></div>
+							</div>
+							<span class="article-likes">
+		            		<i class="icon icon-heart"></i>
+		            		{{currentArticle.likes}}
+		            	</span>
+						</div>
+
+						<div class="weui_article article-desc" style="min-height: 0;margin-bottom: 5px;padding: 0px 10px;">
+							<div class="weui_cells article-unit-list no-border-top no-border-bottom"
+								 style="margin-top: 0px;">
+								<div>
+									<div class="currentArticle-description" v-if="currentArticle.description != null && currentArticle.description != ''">
+										<div>{{{currentArticle.description}}}</div>
+									</div>
+								</div>
+
+								<!--单品重量包-->
+								<div class="weui_cells article-unit-list no-border-top no-border-bottom"
+									 style="margin-top:5px;border-top: 1px solid #D9D9D9;" v-if="selectWeightArticle.show">
+									<div class="weui_cell" style="padding: 3px 0px;">
+										<div class="weui_cell_bd weui_cell_primary">
+											<p class="cart-item-name" style="width: 150px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;">
+												{{selectWeightArticle.name}}</p>
+										</div>
+										<div class="weui_cell_ft">
+											<!--<article-operator :article.sync="selectWeightArticle" @cut="cutCurrentCount"
+                                                              @add="addCurrentCount"></article-operator>-->
+											<div class="numberControl">
+                                        <span @click="cutToWeightArticle" class="cut-span"><i
+												class="icon iconfont minus">&#xe751;</i></span>
+												<span class="art-number">{{selectWeightArticle.count}}</span>
+												<span class="meals-edit plus-span"><i
+														class="icon icon-pencil"></i></span>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="weui_cells article-unit-list no-border-top no-border-bottom"
+									 style="margin-top: initial;" v-if="currentArticle.weightPackageId">
+									<div class="meal-attr-items" style="padding: inherit;">
+										<div class="meal-items" style="padding: inherit;">
+											<div class="form-group">
+												<p><span>{{weightPackageList.name}}</span></p>
+											</div>
+											<div class="clearfix"></div>
+										</div>
+									</div>
+									<div class="items-name-change">
+										<div class="meal-item-div" v-for="item in weightPackageList.details">
+		                    			<span class="item-name-change" :class="{select:item.click==true}"
+											  style="overflow: initial;" @click="selectWeightItem(item,weightPackageList)">{{item.name}}
+			                    		</span>
+										</div>
+									</div>
+								</div>
+								<!--添加推荐配餐列表-->
+								<div class="dish_size_bg text-left padding-0" style="border: none;"
+									 v-if="currentArticle.recommendId&&currentArticle.recommendId != '' && currentArticle.articlePrices.length == 0 && !currentArticle.isEmpty ">
+									<div class="weui_cells article-unit-list no-border-top no-border-bottom"
+										 style="margin-top: 5px;">
+										<div class="meal-attr-items" style="padding: inherit;">
+											<div class="meal-items" style="padding: inherit;">
+												<div class="form-group" style="color:#6E6E6E">
+													<p><span>推荐配餐</span></p>
+												</div>
+												<div class="clearfix"></div>
+											</div>
+										</div>
+									</div>
+
+									<div class="weui_cells article-unit-list no-border-top no-border-bottom"
+										 style="margin-top:0px;border-bottom: 1px solid #D9D9D9;"
+										 v-for="recommend in selectRecommendArticle">
+										<div class="weui_cell" style="padding: 3px 0px;">
+											<div class="weui_cell_bd weui_cell_primary">
+												<p class="cart-item-name">{{recommend.articleName}}</p>
+												<p class="font-mini">
+													<span class="price sale">{{recommend.price}} 元</span>
+												</p>
+											</div>
+											<div class="weui_cell_ft">
+												<article-operator :article.sync="recommend" @cut="cutRecommendCount"
+																  @add="addRecommendCount"></article-operator>
+											</div>
+										</div>
+									</div>
+									<!--可选择的推荐餐包-->
+									<div class="items-name-change" id="scrollOffset">
+										<div class="meal-item-div" v-for="recommend in recommendList.items"
+											 v-if="recommend.currentWorkingStock>0 && recommend.show">
+		            					<span class="item-name-change" :class="{select:recommend.count!=0}"
+											  @click="selectRecommend(recommend)">
+		            						{{recommend.articleName}}
+		            					</span>
+										</div>
+									</div>
+
+								</div>
+
+						</div>
+					</div>
+					<div class="bottom-button">
+						<div class="weui_dialog_ft margin-top-0 no-border-top">
+							<a class="weui_btn_dialog white" @click.stop="closeAction">关闭</a>
+							<a class="weui_btn_dialog primary" @click.stop="addToNewShopCart">加入购物车</a>
+						</div>
+					</div>
+				</div>
+
+				</div>
+            </div>
+            
+            <div v-if="cart">
+	            <div class="weui_mask_transparent" style="background: rgba(0, 0, 0, 0.5);z-index: 299;" @click="showShopCart"></div>
+                <div class="shopcart-list" v-if="shopCartbox" transition="box">
+	                <div class="full-height">
+	                    <div class="weui-cell header_table" id="head_title">
+	                        <div class="weui_cell_primary" style="text-align: left;">
+	                            <span>已选<i class="moneyStyle">{{selectFoods.totalNumber ? selectFoods.totalNumber : 0}}</i>份</span>
+	                            <span style="margin-left: 10px;">总价<i class="moneyStyle">￥{{selectFoods.totalPrice.toFixed(2)}}</i></span>
+	                        </div>
+	                        <div class="weui_cell_ft" @click="clearShopCart">
+                                <img src="assets/img/clearGroup.png" style="width: 1.3rem;height: 1.3rem;vertical-align: middle;"/>
+                                <span>清空购物车</span>
+                            </div>
+	                    </div>
+                        <div class="groupCartList" v-if="selectFoods.length == 0">
+                            <img style="width: 5rem;height: 5rem;padding-top: 30px;" src="assets/img/emptyShopCart.png"/>
+                            <p style="padding-bottom: 30px;">暂无菜品，请添加菜品~</p>
+                        </div>
+                        <div class="groupCartList" v-if="selectFoods.items.length > 0">
+                        	<div>
+                            <div class="groupCartItem" v-for="food in selectFoods.items">
+                                <div class="weui_flex_cart" style="text-align: left;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
+                                    <p>{{food.data.name}}</p>
+									<p v-if="!food.fansPrice && !food.data.recommendList" class="moneyStyle" style="font-size: 1rem;">￥{{food.data.price}}</p>
+									<p v-if="food.fansPrice && !food.data.recommendList" class="moneyStyle" style="font-size: 1rem;">￥{{food.data.fansPrice}}</p>
+									<span v-for="f in food.data.recommendList" v-if="f.count > 0" style="padding: 0 5px;font-size: 0.8rem;color: #9e9e9e;">{{f.articleName}}</span>
+                                </div>
+                                <!--<div class="weui_flex_cart">-->
+                                    <!--<span style="margin-left: -20px;">x{{food.data.saleNumber}}</span>-->
+                                    <!--<span style="position: absolute;left: 53%;" v-if="!food.fansPrice">￥{{food.data.price}}</span>-->
+                                    <!--<span style="position: absolute;left: 53%;" v-if="food.fansPrice">￥{{food.data.fansPrice}}</span>-->
+                                <!--</div>-->
+								<!--纯单品-->
+                                <div class="weui_flex_cart group-item" v-if="!food.data.recommendList">
+                                    <article-operator :article.sync="food.data" @cut="cutToShopCart" @add="addToShopCart"></article-operator>
+                                </div>
+								<!--含推荐餐包的-->
+								<div class="weui_flex_cart group-item" v-if="food.data.recommendList">
+									<span class="numberControl">
+										<span @click="cutToShopCart(food.data)" class="cut-span">
+											<i class="icon iconfont minus">&#xe751;</i></span>
+										<span class="art-number">1</span>
+										<span @click="showAction(food.data)" ontouchend="click()" class="meals-edit plus-span">
+											<i class="icon icon-pencil"></i></span>
+									</span>
+								</div>
+                            </div>
+                            </div>
+                        </div>
+	                    <div class="menu-cart">
+			                <div class="show-shop-cart" @click="showShopCart">
+			                    <div class="weui_cell_primary">
+			                        <img class="shopCartImg" src="assets/img/shopping_cart.png" />
+			                        <span class="shopCartCount">
+			                        	<i class="art-count" v-if="selectFoods.totalNumber>0">{{selectFoods.totalNumber}}</i>
+			                        	<i class="art-count" v-bind:class="{artCount:selectFoods.totalNumber == 0}" v-if="selectFoods.totalNumber == 0"></i>
+			                        </span>
+			                    </div>
+			                    <div style="text-align: center;">
+			                        <span>点击查看购物车</span>
+			                    </div>
+			                    <div class="weui_cell_primary">
+			                        <div style="float: right;">
+			                            <button type="button" class="weui_btn weui_btn_mini weui_btn_main order-ok" v-if="checkTableNumber"
+			                                @click.stop="createOrder" style="background-color: #000;">点好了
+			                            </button>
+			                            <button type="button" class="weui_btn weui_btn_mini weui_btn_main order-ok" v-if="!checkTableNumber"
+			                                    @click.stop="getNumber" style="background-color: #000;line-height: 35px;">扫桌码
+			                            </button>
+			                        </div>
+			                    </div>
+			                </div>
+			            </div>
+	                </div>
+	            </div>
+            </div>
+			            
+			<weui-dialog :show.sync="wMessage.show" :msg="wMessage.message" :type="wMessage.type"></weui-dialog>
+			<choice-shop :show.sync="changeShop.show"></choice-shop>	<!--选择店铺界面-->
+		</div>
+		
+		<!--查看购物车start-->
+        <div class="menu-cart">
+            <div class="show-shop-cart" @click="showShopCart">
+                <div class="weui_cell_primary">
+                    <img class="shopCartImg" src="assets/img/shopping_cart.png" />
+                    <span class="shopCartCount">
+                    	<i class="art-count" v-if="selectFoods.totalNumber>0">{{selectFoods.totalNumber}}</i>
+                    	<i class="art-count" v-bind:class="{artCount:selectFoods.totalNumber == 0}" v-if="selectFoods.totalNumber == 0"></i>
+                    </span>
+                </div>
+                <div style="text-align: center;">
+                    <span>点击查看购物车</span>
+                </div>
+                <div class="weui_cell_primary">
+                    <div style="float: right;">
+                        <button type="button" class="weui_btn weui_btn_mini weui_btn_main order-ok" v-if="checkTableNumber"
+                            @click.stop="createOrder" style="background-color: #000;">点好了
+                        </button>
+                        <button type="button" class="weui_btn weui_btn_mini weui_btn_main order-ok" v-if="!checkTableNumber"
+                                @click.stop="getNumber" style="background-color: #000;line-height: 35px;">扫桌码
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--查看购物车end-->
+		
+		<script type="text/javascript">
+			var baseUrl = getParam("baseUrl");
+	        //baseUrl = "http://test0001.tt.com:8081";
+		</script>
+        <script src="assets/js/jswx.js"></script>
+		<script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+		<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+		<script src="assets/js/custom/invoice/iscroll.js"></script>
+		<script src="//cdn.bootcss.com/iScroll/5.2.0/iscroll-probe.min.js"></script>
+		<script src="assets/js/jquery.fly.min.js"></script>
+		<script src="assets/js/custom/service.js"></script>
+		<script src="assets/js/vue1.0.17.min.js"></script>
+		<script src="assets/js/custom/base/components.js"></script>
+		<script>
+			document.addEventListener('touchmove', function (e) {
+				e.preventDefault();
+			}, false);
+			
+			function iScrollClick() {
+		        if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)) return false;
+		        if (/Chrome/i.test(navigator.userAgent)) return (/Android/i.test(navigator.userAgent));
+		        if (/Silk/i.test(navigator.userAgent)) return false;
+		        if (/Android/i.test(navigator.userAgent)) {
+		            var s = navigator.userAgent.substr(navigator.userAgent.indexOf('Android') + 8, 3);
+		            return parseFloat(s[0] + s[3]) < 44 ? false : true
+		        }
+		    }
+		    $(function () {
+		        FastClick.attach(document.body);
+		    });
+
+			Vue.component("weui-dialog", {
+		        props: ['show','msg','type'],
+		        template: '<div class="weui_loading_toast" v-if="show" >' +
+		        '<div class="weui_mask_transparent" @click="close"></div>' +
+		        '<div class="weui_toast msg-dialog">' +
+		        '<img src="assets/img/correctImg.png" class="msgImg" v-if="type && type == 1" />' +
+		        '<img src="assets/img/errorMsg.png" class="msgImg" v-if="type && type == 2" />' +
+		        '<img src="assets/img/loading.gif" class="msgImg" v-if="type && type == 3" />' +
+		        '<p>{{msg}}</p>' +
+		        '</div>' +
+		        '</div>',
+		        methods: {
+		            close: function () {
+		                this.show = false;
+		            }
+		        }
+		    });
+
+		    var brand = new Object();
+			var rand = "";
+			for (var i = 0; i < 3; i++) {
+			    var r = Math.floor(Math.random() * 10);
+			    rand += r;
+			}
+
+			$.ajax({
+			    url: baseUrl + "/wechat/setting",
+			    data: {"random": rand},
+			    success: function (result) {
+			        brand = result.brand;
+			    }
+			});
+
+            var vm = new Vue({
+				el:"#app",
+				data: function () {
+					return {
+						wMessage: {show: 0, message: "",type:null},
+						shopInfo:{},
+						customerInfo:{},
+                        articleRecommendMap: new HashMap(),
+						articleMap: new HashMap(),
+						soupList:[],
+						cart:false,
+						tableNumber:null,
+						shopCartbox:false,
+						shopId:null,
+						changeShop:{show:false},
+                        currentArticle: null,
+                        recommendList: {items: [], count: null}, /*推荐餐品列表*/
+                        weightPackageList: {name: "",currentItem: [],details: []}, /*重量包列表*/
+                        selectWeightArticle: {show: false, name: '', count: null, price: null},//重量包选中的餐品
+                        selectRecommendArticle: [],//推荐餐品包选中的餐品
+                        weightPackageArticleList: [],
+                        remmcondArticleList: [],
+						editArticle:false,
+                        btnFlag: true,
+                        isc:null
+					};
+				},
+				computed:{
+					selectFoods:function() {
+                        var cart = {
+                            items: [],
+                            totalNumber: 0,
+                            totalPrice: 0,
+                            originPrice: 0,
+                            canheNumber: 0
+                        };
+                        /*纯单品*/
+                        for (var j = 0; j < this.soupList.length; j++) {
+                            var art = this.soupList[j];
+                            if (art.saleNumber>0&&!art.weightPackageId&&!art.recommendId) {
+                                var item = {};
+                                item.name = art.name;
+                                item.data = art;
+                                item.id = art.id;
+                                item.type = 1;
+
+                                item.current_working_stock = art.currentWorkingStock;
+                                cart.totalNumber += art.saleNumber;
+                                cart.totalPrice += art.saleNumber * parseFloat(art.fansPrice?art.fansPrice:art.price);
+                                cart.originPrice += art.saleNumber * parseFloat(art.price);
+                                cart.canheNumber += art.saleNumber * art.mealFeeNumber;
+                                cart.items.push(item);
+                            }
+                        }
+                        /*单品加推荐餐包*/
+                        for (var j = 0; j < this.remmcondArticleList.length; j++) {
+                            var art = this.remmcondArticleList[j];
+                            if (art.number > 0 && art.articlePrices.length == 0) {
+                                var item = {};
+                                item.name = art.name;
+                                item.data = art;
+                                item.id = art.id;
+                                item.type = 6;
+                                item.current_working_stock = art.currentWorkingStock;
+                                cart.totalNumber += art.number;
+                                cart.totalPrice += art.number * parseFloat(art.fansPrice?art.fansPrice:art.price);
+                                cart.originPrice += art.number * parseFloat(art.price);
+                                for (var i = 0; i < art.recommendList.length; i++) {
+                                    cart.totalPrice += art.recommendList[i].count * parseFloat(art.recommendList[i].price);
+                                    cart.originPrice += art.recommendList[i].count * parseFloat(art.recommendList[i].price);
+                                }
+                                cart.canheNumber += art.number * art.mealFeeNumber;
+                                cart.items.push(item);
+                            }
+                        }
+                        for (var i = 0; i < this.weightPackageArticleList.length; i++) {
+                            var art = this.weightPackageArticleList[i];
+                            if (art.count > 0) { //无规格单品
+                                var item = {};
+                                item.name = art.unitName == null ? art.name : art.unitName;
+                                item.id = art.articleId;
+                                item.data = art;
+                                item.type = 8;
+                                cart.totalNumber += art.count;
+                                cart.totalPrice += parseFloat(art.realPrice);
+                                cart.originPrice += parseFloat(art.orgPrice);
+                                for (var j = 0; j < art.recommendList.length; j++) {
+                                    cart.totalPrice += art.recommendList[j].count * parseFloat(art.recommendList[j].price);
+                                    cart.originPrice += art.recommendList[j].count * parseFloat(art.recommendList[j].price);
+                                }
+                                cart.canheNumber += art.count * art.mealFeeNumber;
+                                cart.items.push(item);
+                            }
+                        }
+                        return cart;
+					},
+				    checkTableNumber:function(){
+                    	var tableNumber = getParam("tableNumber") == null ? this.tableNumber : getParam("tableNumber");
+                    	if(tableNumber == null){
+                    		return false;
+                    	}else{
+                    		return true;
+                    	}
+                    }
+				},
+				methods:{
+					cutRecommendCount:function(a){		//减推荐餐包的菜品
+                        var that = this;
+                        if(!that.btnFlag){
+                            return false;
+                        }
+                        that.btnFlag = false;
+                        setTimeout(function () {
+                            that.btnFlag = true;
+                        },300);
+
+                        if (a.count && a.count > 0) {
+                            this.startMoney -= a.price;
+                            this.totalMoney -= a.price;
+                            a.count--;
+                            this.currentCount--;
+                        }
+                        if (a.count == 0) {
+                            a.show = true;
+                            for(var j=0;j<this.selectRecommendArticle.length;j++){
+                                if(this.selectRecommendArticle[j].articleId == a.articleId){
+                                    this.selectRecommendArticle.splice(j, 1);
+                                }
+                            }
+                        }
+                        var that = this;
+                        Vue.nextTick(function () {
+                            that.articleIsc.refresh();
+                        });
+					},
+					addRecommendCount:function(a){		//加推荐餐包的菜品
+                        if (a.count < a.maxCount) {
+                            this.totalMoney += a.price;
+                            this.startMoney += a.price;
+                            a.count++;
+                            this.currentCount++;
+                        } else {
+                            this.$dispatch("emptyMessage", "此商品最大购买" + a.maxCount + "个", 2000);
+                        }
+                        var that = this;
+                        Vue.nextTick(function () {
+                            that.articleIsc.refresh();
+                        });
+					},
+					resetScroll:function(){
+					    var content = $("#scrollList");
+					    var height = $(window).height();
+					    content.height(height - 89);
+					    content.css({
+					        overflow: "hidden",
+					        position: "relative"
+					    })	
+					},
+                    showAction: function(a){
+                        var that = this;
+                        if(!that.btnFlag){
+                            return false;
+						}
+                        that.btnFlag = false;
+						setTimeout(function () {
+                            that.btnFlag = true;
+                        },300);
+                        this.selectRecommendArticle = a.recommendList;
+                        this.editArticle = true;
+                        this.currentArticle = that.articleMap.get(a.articleId) ? that.articleMap.get(a.articleId) : that.articleMap.get(a.id);
+                        this.currentArticle.uuid = a.uuid;
+                        var recommendList = this.articleRecommendMap.get(a.recommendId);
+                        for (var i = 0; i < recommendList.length; i++) {
+                            var r = recommendList[i];
+                            var flag = true;
+                            for (var j = 0; j < this.selectRecommendArticle.length; j++){
+                                var s = this.selectRecommendArticle[j];
+                                if(s.articleId == r.articleId){
+                                    flag = false;
+                                    that.recommendList.items.push({
+                                        articleId: r.articleId,
+                                        price: r.price,
+                                        articleName: r.articleName,
+                                        count: s.count,
+                                        maxCount: r.maxCount,
+                                        currentWorkingStock: 100,
+                                        show: false,
+                                        isEmpty: false,
+                                        imageUrl: getPicUrl(r.imageUrl)
+                                    });
+								}
+							}
+							if(flag){
+                                that.recommendList.items.push({
+                                    articleId: r.articleId,
+                                    price: r.price,
+                                    articleName: r.articleName,
+                                    count: 0,
+                                    maxCount: r.maxCount,
+                                    currentWorkingStock: 100,
+                                    show: true,
+                                    isEmpty: false,
+                                    imageUrl: getPicUrl(r.imageUrl)
+                                });
+							}
+                        }
+                        for(var k=0;k<that.recommendList.items.length;k++){
+							var recommendItem = that.recommendList.items[k];
+							if(recommendItem.count > 0){
+                                recommendItem.count--;
+							    that.selectRecommend(recommendItem);
+							}
+						}
+                        if(a.weightPackageList && a.weightPackageList.currentItem.length > 0){
+                            for(var j=0;j<a.weightPackageList.currentItem.length;j++){
+                                var weightPackageItem = a.weightPackageList.currentItem[j]
+								that.selectWeightItemAgain(weightPackageItem, a.weightPackageList);
+                                this.weightPackageList = a.weightPackageList;
+                                this.currentArticle.weightPackageList = a.weightPackageList;
+							}
+						}
+						Vue.nextTick(function () {                       	
+			                var dis = $(that.$el).find(".weui_article");
+			                var totalHeight = $("#weightScroll").height();
+			                var otherHeight = 0;
+			                dis.siblings().each(function () {
+			                    var he = $(this).outerHeight(true);
+			                    otherHeight += he;
+			                })
+			                var remainHeight = totalHeight - otherHeight;
+			                var h = dis.height();
+			                dis.height(remainHeight);
+			                dis.css({
+			                	position: "relative",
+			                    overflow: "hidden"
+			                });
+			                setTimeout(function(){
+			                	that.articleIsc = new IScroll(dis.get(0), {
+				                    click: iScrollClick(),
+				                });	
+			                },2000)		
+			            });
+			            Vue.nextTick(function () {
+	                        that.articleImage = new IScroll("#recommendImg", {
+	                            probeType: 2,
+	                            scrollX: true,
+	                            scrollY: false,
+	                            click: iScrollClick()
+	                        });
+	                    })
+					},
+                    showActionSoup: function(a){
+                        var that = this;
+                        this.currentArticle = a;
+                        if(a.openCatty == 1){
+                            console.log("该菜品存在重量包~~~");
+                            getWeightPacketInfo(a.weightPackageId,function(res){
+                                if(res.success){
+                                    var obj = res.data;
+                                    that.weightPackageList.currentItem = [];
+                                    that.weightPackageList.details = [];
+                                    that.weightPackageList.name = obj.name;
+                                    for (var k = 0; k < obj.details.length; k++) {
+                                        var detail = {
+                                            id: obj.details[k].id,
+                                            name: obj.details[k].name,
+                                            weight:obj.details[k].weight,
+                                            click: false,
+                                        }
+                                        that.weightPackageList.details.push(detail);
+                                    }
+                                    that.currentArticle.weightPackageList = that.weightPackageList;
+                                }
+
+                            })
+                        }
+                        if(a.recommendId){
+                            $.ajax({
+                                type: "post",                               
+                                url: baseUrl + "/wechat/order/new/getRecommend",
+                                async:false,
+                                data: {
+                                    articleId: a.id,
+                                    groupId:""
+                                },
+                                success: function (result) {
+                                    if(result.success){
+                                        that.recommendList.items = [];
+                                        var obj = result.data;
+                                        if (!obj) {
+                                            return;
+                                        }
+                                        that.recommendList.count = obj.count;
+                                        that.recommendList.choiceType = obj.choiceType;
+                                        if (obj.articles) {
+                                            for (var i = 0; i < obj.articles.length; i++) {
+												that.recommendList.items.push({
+													articleId: obj.articles[i].articleId,
+													price: obj.articles[i].price,
+													articleName: obj.articles[i].articleName,
+													count: 0,
+													maxCount: obj.articles[i].maxCount,
+													currentWorkingStock: 100,
+													show: true,
+													isEmpty: false,
+													imageUrl: getPicUrl(obj.articles[i].imageUrl)
+												});
+                                            }
+                                        }
+                                        if(!that.articleRecommendMap.get(a.recommendId)){
+                                            that.articleRecommendMap.put(a.recommendId, that.recommendList.items);
+										}
+                                    }else{
+                                        that.$dispatch("remindMessage","推荐餐包返回失败,请重试!",3000);
+                                    }									
+                                }
+                            });
+						}
+                        
+                        Vue.nextTick(function () {                       	
+			                var dis = $(that.$el).find(".weui_article");
+			                var totalHeight = $("#weightScroll").height();
+			                var otherHeight = 0;
+			                dis.siblings().each(function () {
+			                    var he = $(this).outerHeight(true);
+			                    otherHeight += he;
+			                })
+			                var remainHeight = totalHeight - otherHeight;
+			                var h = dis.height();
+			                dis.height(remainHeight);
+			                dis.css({
+			                	position: "relative",
+			                    overflow: "hidden"
+			                });
+			                setTimeout(function(){
+			                	that.articleIsc = new IScroll(dis.get(0), {
+				                    click: iScrollClick(),
+				                });	
+			                },2000)		
+			            });
+			            Vue.nextTick(function () {
+	                        that.articleImage = new IScroll("#recommendImg", {
+	                            probeType: 2,
+	                            scrollX: true,
+	                            scrollY: false,
+	                            click: iScrollClick()
+	                        });
+	                    })
+                    },
+                    closeAction: function () {
+                        this.currentArticle = null;
+                        this.selectWeightArticle.show = false;
+                        this.selectRecommendArticle = [];
+                        this.editArticle = false;
+                        this.recommendList.items = [];
+                    },
+                    selectWeightItem:function(item,attr){
+                        var that = this;
+                        if (attr.currentItem.length == 0) {
+                            attr.currentItem.push(item);
+                            item.click = true;
+                        } else {
+                            if (attr.currentItem[0].id == item.id) {
+                                this.$dispatch("emptyMessage", attr.name + "为必选项", 2000);
+                                item.click = true;
+                            } else {
+                                attr.currentItem[0].click = false;
+                                this.totalMoney -= attr.currentItem[0].price;
+                                for (var k = 0; k < attr.details.length; k++) {
+                                    if (attr.details[k].id == attr.currentItem[0].id) {
+                                        attr.details[k].click = false;
+                                    }
+                                }
+                                attr.currentItem = [];
+                                attr.currentItem.push(item);
+                                item.click = true;
+                            }
+                        }
+                        var unitName = this.currentArticle.name;
+                        if (attr.currentItem.length > 0) {
+                            this.selectWeightArticle.show = true;
+                            this.selectWeightArticle.count = 1;
+                            this.totalMoney = this.currentArticle.cattyMoney * this.selectWeightArticle.count;
+                            this.selectWeightArticle.price = this.currentArticle.cattyMoney;
+                            attr.details.forEach(function(obj){
+                                if(obj.click){
+                                    that.selectWeightArticle.name = unitName + "(" + obj.name + ")";
+                                }
+                            })
+                        }else{
+                            this.selectWeightArticle.show = false;
+                        }
+
+                    },
+                    selectWeightItemAgain:function(item,attr){
+                        if (attr.currentItem.length == 0) {
+                            attr.currentItem.push(item);
+                            item.click = true;
+                        } else {
+                            if (attr.currentItem[0].id == item.id) {
+                                this.selectWeightArticle.show = true;
+                                this.selectWeightArticle.count = 1;
+                                this.totalMoney = this.currentArticle.cattyMoney * this.selectWeightArticle.count;
+                                this.selectWeightArticle.price = this.currentArticle.cattyMoney;
+								this.selectWeightArticle.name = this.currentArticle.name + "(" + item.name + ")";
+                            }
+						}
+					},
+                    selectRecommend: function (item) {
+                    	var that = this;
+                        if (item.count < item.maxCount) {
+                            this.startMoney += item.price;
+                            this.totalMoney += item.price;
+                            item.count++;
+                            this.currentCount++;
+                        }
+                        item.show = false;
+                        if(this.selectRecommendArticle.length>0){
+                            for(var j=0;j<this.selectRecommendArticle.length;j++){
+								if(this.selectRecommendArticle[j].articleId == item.articleId){
+                                    this.selectRecommendArticle.splice(j, 1);
+								}
+                            }
+						}
+                        this.selectRecommendArticle.push(item);
+                        Vue.nextTick(function () {
+                            that.articleIsc.refresh();
+                            that.articleImage.refresh();
+                        })
+                    },
+                    addToNewShopCart: function () {
+                        var that = this;
+                        if(!this.editArticle && this.currentArticle.uuid){
+                            this.currentArticle.uuid = null;
+						}
+                        if(this.currentArticle.recommendId){
+                            var list = this.recommendList;
+                            var value = [];
+                            for (var i = 0; i < list.items.length; i++) { //遍历推荐餐品列表
+                                var obj = list.items[i];
+                                if (obj.count > 0) {//判断是有存在购买的推荐商品
+									value.push(obj);
+                                }
+                            }
+                            this.currentArticle.recommendList = value;
+						}
+                        if(this.currentArticle.weightPackageId){
+                            console.log("----------添加重量包");
+                            if(this.currentArticle.weightPackageList.currentItem.length == 0){
+                            	that.$dispatch("remindMessage","请先选择称重菜品!",3000);
+                            	return;
+                            }
+                            var sum = this.currentArticle.cattyMoney * this.currentArticle.weightPackageList.currentItem[0].weight;
+                            var orgPrice = this.currentArticle.cattyMoney * this.currentArticle.weightPackageList.currentItem[0].weight;
+                            var orgName = this.currentArticle.name;
+                            var name = this.currentArticle.name + "(" + this.currentArticle.weightPackageList.currentItem[0].name + ")";
+
+                            var uuid = null;
+                            if (this.currentArticle.uuid != null) {
+                                uuid = this.currentArticle.uuid;
+                                for (var i = 0; i < this.weightPackageArticleList.length; i++) {
+                                    if (this.weightPackageArticleList[i].uuid == uuid) {
+                                        this.weightPackageArticleList.splice(i, 1);
+                                    }
+                                }
+                            } else {
+                                uuid = this.uuid();
+                            }
+                            var weightPackageArticle = {
+                                name: name,
+                                id: uuid,
+                                customerList: [that.customerInfo.id],
+                                uuid: uuid,
+                                articleFamilyId: this.currentArticle.articleFamilyId,
+                                articleId: this.currentArticle.id,
+                                realPrice: sum,
+                                orgPrice: orgPrice,
+                                orgName: orgName,
+                                weightPackageList: Object.assign({}, this.currentArticle.weightPackageList),
+                                weightPackageId: this.currentArticle.weightPackageId,
+                                weight: this.currentArticle.weightPackageList.currentItem[0].weight,
+                                count: 1,
+                                sum: sum,
+                                mealFeeNumber: this.currentArticle.mealFeeNumber,
+                                recommendList: this.currentArticle.recommendList ? this.currentArticle.recommendList : [],
+                                recommendId: this.currentArticle.recommendId ? this.currentArticle.recommendId : null,
+                                showBig: this.currentArticle.showBig,
+                                photoSmall: this.currentArticle.photoSmall,
+                                description: this.currentArticle.description
+                            }
+                            this.weightPackageArticleList.push(weightPackageArticle);
+                        } else if (this.currentArticle.recommendId) { //单品推荐包
+							if(this.currentArticle.uuid != null){
+                                var uuid = this.currentArticle.uuid;
+                                for (var i = 0; i < this.remmcondArticleList.length; i++) {
+                                    if (this.remmcondArticleList[i].uuid == uuid) {
+                                        this.remmcondArticleList.splice(i, 1);
+                                    }
+                                }
+							}else{
+                                uuid = this.uuid();
+							}
+                            var remmcondArticleDetail = {
+                                uuid: uuid,
+                                number: 1,
+							};
+                            remmcondArticleDetail = $.extend(remmcondArticleDetail, this.currentArticle);
+							this.remmcondArticleList.push(remmcondArticleDetail);
+
+                        }
+                        this.closeAction();
+                    },
+                    uuid: function () {
+                        var s = [];
+                        var hexDigits = "0123456789abcdef";
+                        for (var i = 0; i < 36; i++) {
+                            s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+                        }
+                        s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+                        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+                        s[8] = s[13] = s[18] = s[23] = "-";
+
+                        var uuid = s.join("");
+                        return uuid;
+                    },
+
+					showAlter: function (msg, type, time) {
+                        this.wMessage.show = 1;
+                        this.wMessage.type = type;
+                        this.wMessage.message = msg;
+                        var that = this;
+                        setTimeout(function () {
+                            that.wMessage.show = 0;
+                        }, time || 1000);
+                    },
+                    resetWindow:function(){
+						var btn_menu = $(".menu-cart");
+						var head_menu = $("#head_title");
+					    var content = $(".groupCartList");
+					    var height = $(".shopcart-list").height();
+					    content.height(height - btn_menu.height() - head_menu.height()-12);
+					    content.css({
+					        overflow: "hidden",
+					        position: "relative"
+					    })
+					},
+                    closeAlter:function(){
+                    	this.wMessage.show = 0;
+                    },
+					passEdit:function(){
+//						window.location.href = "/wechatNew/src/index.html?"+getUrlParam(window.location.href);
+						window.location.href = getParam("baseUrl")+"/restowechat/src/index.html?"+getUrlParam(window.location.href);
+					},
+					addToShopCart:function(a){
+                        var that = this;
+                        if(!that.btnFlag){
+                            return false;
+                        }
+                        that.btnFlag = false;
+                        setTimeout(function () {
+                            that.btnFlag = true;
+                        },300);
+                        a.saleNumber++;
+					},
+					cutToShopCart:function(a){
+                        var that = this;
+                        if(!that.btnFlag){
+                            return false;
+                        }
+                        that.btnFlag = false;
+                        setTimeout(function () {
+                            that.btnFlag = true;
+                        },300);
+					    if(a.recommendId || a.weightPackageId){
+                            var uuid = a.uuid;
+					        if(a.weightPackageId){
+                                for (var i = 0; i < this.weightPackageArticleList.length; i++) {
+                                    if (this.weightPackageArticleList[i].uuid == uuid) {
+                                        this.weightPackageArticleList.splice(i, 1);
+                                    }
+                                }
+							}else{
+                                for (var j = 0; j < this.remmcondArticleList.length; j++) {
+                                    if (this.remmcondArticleList[j].uuid == uuid) {
+                                        this.remmcondArticleList.splice(j, 1);
+                                    }
+                                }
+							}
+						}else{
+                            a.saleNumber--;
+						}
+					},
+					clearShopCart:function(){
+						var that = this;
+						var shopcart = this.selectFoods.items;
+						if(shopcart.length == 0){
+							this.showAlter("购物车暂无菜品~",2, 3000);
+							return;
+						}
+			            for (var i = 0; i < shopcart.length; i++) {
+			                var a = shopcart[i].data;
+                            if(a.recommendId || a.weightPackageId){
+                                var uuid = a.uuid;
+                                if(a.weightPackageId){
+                                    for (var i = 0; i < this.weightPackageArticleList.length; i++) {
+                                        if (this.weightPackageArticleList[i].uuid == uuid) {
+                                            this.weightPackageArticleList.splice(i, 1);
+                                        }
+                                    }
+                                }else{
+                                    for (var j = 0; j < this.remmcondArticleList.length; j++) {
+                                        if (this.remmcondArticleList[j].uuid == uuid) {
+                                            this.remmcondArticleList.splice(j, 1);
+                                        }
+                                    }
+                                }
+			                }else{
+                                a.saleNumber = 0;
+							}
+			            }
+						that.cart = !that.cart;
+		            	that.shopCartbox = !that.shopCartbox;
+					},
+					showShopCart:function(){
+						var that = this;
+						setTimeout(function(){
+							that.resetWindow();
+			            },500);
+						that.cart = !that.cart;
+		            	that.shopCartbox = !that.shopCartbox;
+		            	if(that.selectFoods.items.length){
+		            		Vue.nextTick(function () {
+			                    setTimeout(function(){
+			                        that.groupIsc = new IScroll(".groupCartList", {
+			                            click: iScrollClick()
+			                        });
+			                    },2000);
+			                });
+		            	}
+					},
+                    createOrder: function () {
+                        var that = this;
+                        if(!this.selectFoods.items.length){
+                            that.showAlter("您还没有点餐哦~",2, 3000);
+                            return;
+                        };
+                        var order = {
+                            brandId:brand.id,
+                            customerId:that.customerInfo.id,
+                            shopDetailId:that.shopInfo.id,
+                            tableNumber:getParam("tableNumber") == null ? that.tableNumber : getParam("tableNumber"),
+                        }
+                        var items = [];
+                        for (var i = 0; i < this.selectFoods.items.length; i++) {
+                            var item = this.selectFoods.items[i];
+                            var orderItem;
+                            if (item.data.recommendList != null && item.data.recommendList.length > 0) {
+                                for (var k = 0; k < item.data.recommendList.length; k++) {
+                                    var recommend = item.data.recommendList[k];
+                                    if(recommend.count > 0){
+                                        var recommendResult = {
+                                            articleId: recommend.articleId,
+                                            count: recommend.count,
+                                            type: 6,
+                                            recommendId: item.data.recommendId,
+                                            parentId: item.data.id
+                                        }
+                                        items.push(recommendResult);
+									}
+                                }
+                            }
+                            if (item.type == 6 && item.count > 0) {
+                                orderItem = {
+                                    articleId: item.id,
+                                    count: item.data.number,
+                                    type: 1,
+                                    discount:item.data.discount
+                                };
+                            } else if (item.type == 8) {
+                                orderItem = {
+                                    articleId: item.id,
+                                    count: item.data.count,
+                                    type: item.type,
+                                    name: item.name,
+                                    price: item.data.realPrice,
+                                    parentId: item.data.id,
+                                    weight: item.data.weightPackageList.currentItem[0].weight
+                                };
+                            } else {
+                                orderItem = {
+                                    articleId: item.id,
+                                    count: item.data.saleNumber,
+                                    type: item.type,
+                                    discount:item.data.discount
+                                };
+                            }
+                            items.push(orderItem);
+                        }
+                        saveArticleBefore(order,JSON.stringify(items),function(result){
+                            if(result.success){
+                                //window.location.href = "/wechatNew/src/index.html?" + getUrlParam(window.location.href);
+                                if(getParam("tableNumber") == null){
+                                    window.location.href = getParam("baseUrl")+"/restowechat/src/index.html?"+getUrlParam(window.location.href)+"&tableNumber="+that.tableNumber;
+                                }else{
+                                    window.location.href = getParam("baseUrl")+"/restowechat/src/index.html?"+getUrlParam(window.location.href);
+                                }
+                            }else{
+//                                that.showAlter("别的小伙伴已经点过啦~",2, 3000);
+                                that.showAlter(result.message, 2, 5000);
+                            }
+                        });
+                    },
+                    getNumber:function(){
+                        var that = this;
+                        if(!this.selectFoods.items.length){
+							that.showAlter("您还没有点餐哦~",2, 3000);
+							return;
+						};
+						scanSoupNumber(function (data) {
+                            getShopInfo(function (shop) {
+                                if (shop.isNewQrcode == 0) {
+                                    var reg_allNumber = /^[\d]+$/;
+                                    var reg_tableNumber = /tableNumber=[\d]+/;
+                                    if (reg_allNumber.test(data)) {
+                                        that.tableNumber = data;
+                                    } else if (reg_tableNumber.test(data)) {
+                                        var tbNumber = data.match(reg_tableNumber)[0].match(/[\d]+/)[0];
+                                        if (tbNumber.length >= 5) {
+                                        	that.showAlter("扫码获取的桌号长度过长，请重新扫码",2, 3000);
+                                            return;
+                                        }
+                                        that.tableNumber = tbNumber;
+                                    }
+                                    var reg_shopId = /shopId=[a-zA-Z0-9]+/;
+                                    if (reg_shopId.test(data)) {
+                                        that.shopId = data.match(reg_shopId)[0].split("=")[1];
+                                        if (that.shopId == null || that.tableNumber == null) {
+                                            that.tableNumber = null;
+                                            that.showAlter("未识别改格式的数据:",2, 3000);
+                                            return;
+                                        }
+                                        if (that.shopId != that.shopInfo.id) {
+                                            that.tableNumber = null;
+                                            that.showAlter("二维码与门店信息不符！",2, 3000);
+                                            return;
+                                        }
+                                    }
+                                    var reg_vv = /vv=[-.-_A-Za-z0-9]+/;
+                                    if (reg_vv.test(data)) {
+                                        getTable(data.match(reg_vv)[0].split("=")[1], function (res) {
+                                        	if (res.shopDetailId != that.shopInfo.id) {
+                                        		that.showAlter("该二维码与门店信息不符！",2, 3000);
+                                                return;
+                                            }
+                                            that.tableNumber = res.tableNumber;
+                                        });
+                                    }
+                                } else {
+                                    var reg_vv = /vv=[-.-_A-Za-z0-9]+/;
+                                    that.tableNumber = null;
+                                    if (reg_vv.test(data)) {
+                                        getTable(data.match(reg_vv)[0].split("=")[1], function (res) {
+                                        	if (res.shopDetailId != that.shopInfo.id) {
+                                                that.showAlter("该二维码与门店信息不符！",2, 3000);
+                                                return;
+                                            }
+                                            that.tableNumber = res.tableNumber;
+                                            penScanLog(that.customerInfo.id ,data.match(reg_vv)[0].split("=")[1], function (r) {});
+                                        });
+                                    } else {
+                                        that.$dispatch("remindMessage", "该门店二维码已启用加密服务，请核实您的二维码！", 4000);
+                                        return;
+                                    }
+                                }
+                            });
+                        });
+                    }
+				},
+				events: {
+					"successMessage": function (msg,time) {
+			            this.showAlter(msg,1,time);
+			        },
+			        "remindMessage": function (msg,time) {
+			            this.showAlter(msg,2,time);
+			        },
+			        "loadingUnit": function (msg,time) {
+			            this.showAlter(msg,3,time);
+			        },
+					"emptyMessage": function (msg,time) {
+                        this.showAlter(msg,2,time);
+                    },
+				},
+				created: function (){
+					var that = this;
+		            getCustomer(function (customer) {
+		                that.customerInfo = customer;
+		            });
+					getShopInfo(function(shop){
+						that.shopInfo = shop;
+						getPortSoup(shop.id,getParam("tableNumber"),that.customerInfo.id,function(result){
+							if(result.success){
+								that.soupList = result.data;
+								for (var i=0; i<that.soupList.length; i++){
+                                    that.articleMap.put(that.soupList[i].id, that.soupList[i]);
+								}
+							}
+						})
+					})
+				},
+				ready:function(){
+					var that = this;
+					$.ajax({
+					    url: baseUrl + "/wechat/jsconfig",
+					    type: "post",
+					    data: {"query": getUrlParam(window.location.href),"qiehuan":"soup"},
+					    dataType: "json",
+					    success: function (result) {
+					        wx.config(result.data);
+					        wx.ready(function () {
+							    wx.hideMenuItems({
+							        menuList: ['menuItem:share:weiboApp','menuItem:share:QZone','menuItem:share:email','menuItem:share:brand',
+							            'menuItem:copyUrl','menuItem:originPage','menuItem:editTag','menuItem:delete','menuItem:share:facebook',
+							            'menuItem:favorite','menuItem:share:qq'] // 要隐藏的菜单项，只能隐藏“传播类”和“保护类”按钮，所有menu项见附录3
+							    });
+							});
+					    }
+					});
+					$("#app").css("display","block");
+					that.resetScroll();
+					setTimeout(function(){
+						that.isc = new IScroll("#scrollList",{
+							probeType : 2,
+							click:true,
+						});
+					},2000)
+					
+					if(getUrlParam(window.location.href).indexOf("oldCustomer=1") != -1 && getParam("orderBossId") == null && getParam("waitId") == null){
+						that.changeShop.show = true;
+					}
+				},
+				components: {
+					"article-operator": {
+			            props: ["article", "style"],
+			            template: '<span class="numberControl" :style="style" v-if="!article.isEmpty">' +
+			            '<span v-if="article.saleNumber || article.count" ontouchend="click()" @click.stop="cutA" class="cut-span"><i class="icon iconfont minus">&#xe751;</i></span>' +
+			            '<span v-if="article.saleNumber" class="art-number">{{article.saleNumber}}</span>' +
+			            '<span v-if="!article.saleNumber && article.count" class="art-number">{{article.count}}</span>' +
+			            '<span class="plus-span" @click.stop="addArticle" ontouchend="click()"><i class="icon iconfont plus">&#xe6cd;</i></span>' +
+			            '</span>' +
+			            '<span class="numberControl font-15" :style="style" v-else>已售罄</span>',
+			            created: function () {
+			                if (this.article && this.article.isEmpty) {
+			                    this.article.count = 0;
+			                }
+			            },
+			            methods: {
+			                cutA: function (e) {
+			                    this.$dispatch('cut', this.article);
+			                },
+			                addArticle: function (e) {
+			                    var that = this;
+			                    var clickAnt = $("<span>1</span>");
+			                    clickAnt.css({
+			                        fontSize: "18px",
+			                        padding: "0px 10px",
+			                        backgroundColor: "#CDCDCD",
+			                        color: "white",
+			                        borderRadius: "50%",
+			                        zIndex: 99999
+			                    });
+			                    var s = $(".art-count").offset();
+			                    var a = $(e.target).offset();
+			                    var speed = 2 + 2 / (s.top - a.top) * 20;
+			                    clickAnt.fly({
+			                        start: {
+			                            left: a.left,
+			                            top: a.top
+			                        },
+			                        end: {
+			                            left: s.left,
+			                            top: s.top,
+			                        },
+			                        autoPlay: true,
+			                        speed: speed,
+			                        vertex_Rtop: a.top - 50,
+			                        onEnd: function () {
+			                            clickAnt.remove();
+			                        }
+			                    });
+
+			                    this.$dispatch('add', that.article);
+			                }
+			            }
+			        },
+			        "choice-shop": {
+			        	props: ["show"],
+					    template: '<div class="weui_dialog_alert" v-if="show">' +
+					    '<div class="weui_mask"></div>' +
+					    '<div class="weui_dialog_shop">' +
+					    '<div class="main-height">' +
+					    '<div class="remainLamp">' +
+					    '<img src="assets/img/background.png" class="backgroundImg" />' +
+					    '</div>' +
+					    '<div class="toEnter">' +
+					    '<img src="{{shop.photo}}" style="width:12vh;height:12vh;border-radius: 50%;" />' +
+					    '</div>' +
+					    '<div class="shopName">{{shop.name}}</div>' +
+					    '<div class="detailedInfor">' +
+					    '<img src="assets/img/location.png" class="smallImg" />' +
+					    '<span class="shop_addressInfo">{{shop.address}}</span>' +
+//						'<span style="vertical-align: middle;margin-left: 8px;">{{distance}}</span>' +
+					    '</div>' +
+					    '<div class="detailedInfor">' +
+					    '<img src="assets/img/shoping.png" class="smallImg" style="height: 14px;"/>' +
+					    '<span style="vertical-align: middle;margin-left: 7px;">营业时间 : {{new Date(shop.openTime.time).format("hh:mm")}} - {{new Date(shop.closeTime.time).format("hh:mm")}}</span>' +
+					    '</div>' +
+					    '<div class="changeBtn">' +
+					    '<button class="weui_btn weui_mini_btn weui-btn_change" @click="switchShop(mode)">切换门店</button>' +
+					    '<button class="weui_btn weui_mini_btn weui-btn_into" @click="inToShop" style="margin-top: initial;">进入店铺</button>' +
+					    '</div>' +
+					    '</div>' +
+					    '</div>' +
+					    '</div>',
+					    data: function () {
+					        return {
+					            map:null,
+					            distance:null,
+					            shop:{}
+					        }
+					    },
+					    created: function () {
+					        var that = this;
+					        this.$watch("show", function () {
+					            if(this.show){
+					            	getShopInfo(function(shop){
+										that.shop = shop;
+									})
+					            }
+					        })
+					    },
+					    methods: {
+					        inToShop:function(){
+					            this.show = false;
+					        },
+					        switchShop: function (switchMode) {
+				                this.show = false;
+				                window.location.href = getParam("baseUrl") + "/restowechat/src/shopList.html?"+getUrlParam(window.location.href);
+								//window.location.href = "/wechatNew/src/shopList.html?qiehuan=qiehuan&loginpage="+pageType;
+					        }
+					    }
+			        }
+				}
+			})
+		</script>
+	</body>
+</html>

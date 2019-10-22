@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>关注页</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+</head>
+<style>
+
+    html,body {
+    	position: relative;
+    	height: 100%;
+	    overflow-y: hidden;
+	    margin: 0;
+	    padding: 0;
+    }
+    #vueControl {
+    	position: relative;
+    	height: 100%;
+    	text-align: center;
+    	background: #000;
+    }
+    .weui_dialog_code {
+	    position: fixed;
+	    z-index: 1;
+	    width: 80%;
+	    top: 10%;
+	    left: 0;
+	    right: 0;
+	    margin: auto;
+	    text-align: center;
+	    border-radius: 10px;
+	    height: 76%;
+        background: #d55041;
+    	color: #ffb896;
+    }
+    .arrowImg {
+		position: absolute;
+	    right: 5px;
+	    top: 10px;
+	    width: 1.5rem;
+	    height: 1.5rem;
+    }
+    .full-height {
+    	position: relative;
+    	height: 100%;
+    	font-family: "微软雅黑";    	
+    }
+    .brandImg {
+    	width: 5rem;
+    	height: 5rem;
+    	border-radius: 50%;
+    	margin-top: 0.8rem;
+    }
+    .shopName {
+	    margin-top: 0.3rem;
+	    margin-bottom: 0.7rem;
+	    color: #ffb391;
+	    font-weight: bold;
+	    font-size: 1rem;
+    }
+    .codeSrc {
+    	width: 10rem;
+    	height: 10rem;
+	    background: #fff;
+    	padding: 0.4rem;
+    }
+	.codeText {
+		font-weight: bold;
+		font-size: 1rem;
+		color: #E2E3A7;
+		margin-top: 0.6rem;
+	}	  
+	.footer {
+		position: absolute;
+	    bottom: 0.8rem;	    
+	    font-family: 微软雅黑;
+	    text-align: center;
+	    width: 100%;
+	    font-size: 0.8rem;
+	    font-weight: bold;
+        text-decoration: none
+	}
+	@media screen and (min-width: 374px) {
+		.codeSrc {
+			margin-top: 1rem;
+			width: 11rem;
+			height: 11rem;
+		}
+		.shopName {
+			margin-top: 1rem;
+			font-size: 1.2rem;
+		}
+		.codeText {
+			font-size: 1rem;
+			margin-top: 1.2rem;
+		}
+		.footer {
+			bottom: 1.2rem;
+			font-size: 0.9rem;
+		}
+	}
+	@media screen and (min-width: 410px) {
+		.brandImg {
+	    	width: 6rem;
+	    	height: 6rem;
+	    	margin-top: 1rem;
+	    }
+	    .codeSrc {
+			margin-top: 1.5rem;
+			width: 12rem;
+			height: 12rem;
+		}
+	    .codeText {
+	    	font-size: 1rem;
+			margin-top: 2rem;
+		}
+		.footer {
+			bottom: 1.5rem;
+			font-size: 1rem;
+		}
+	}
+	.topcontent {
+	    height: 70%;
+	    border: 1px solid #df5548;
+	    background: #df5548;
+	    border-radius: 10px 10px 50% 50%/10px 10px 15% 15%;
+	    box-shadow: 0px 2px 0px -1px rgba(0, 0, 0, 0.2);
+	}
+	    
+</style>
+<body>
+<div id="vueControl">
+    <img src="assets/img/arrow.png" class="arrowImg" @click="returnShop">
+	
+	<div class="weui_dialog_code" style="font-family:微软雅黑;">
+	   <div class="topcontent">
+			<img class="brandImg" :src="redPackageLogo" >				   		
+    		<div class="shopName">{{brand.brandName}}</div>
+    		<img class="codeSrc" :src="brandSetting.qrCodeBrand" />
+    		
+    		<div class="codeText" v-if="into">
+    			<div>长按二维码关注</div>
+    			<div>使用余额支付</div>
+    		</div>
+    		
+    		<div class="codeText" v-if="!into">
+    			<div>长按二维码关注</div>
+    			<div>写评论领取红包</div>
+    		</div>			
+   		</div>
+	</div>
+	<div class="footer">
+		<a href="tel:400-805-1711" style="text-decoration: none;color: #fff;">
+			<div>上海餐加提供技术支持</div>
+			<div>客服电话:400-805-1711</div>
+		</a>
+	</div>
+	
+</div>
+
+<script src="assets/js/vue.min.js"></script>
+<script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="assets/js/custom/service.js"></script>
+<script src="assets/js/custom/util.js"></script>
+<script>
+	var IMAGE_SERVICE = null;
+	//禁止微信浏览器的默认滚动行为
+	document.addEventListener('touchmove', function (e) {
+		e.preventDefault();
+	}, false);
+    var vm = new Vue({
+        el: "#vueControl",
+        data: function () {
+            return {
+                brandSetting:{},
+                brand:{},
+				redPackageLogo:null,
+				redConfig:{},
+				into:true,
+            }
+        },
+        created: function () {
+			var that = this;
+			if (getParam("dialog") != null && "attentionPage" == getParam("dialog")) {
+				that.into = false;
+			}
+			$.ajax({
+				url: getParam("baseUrl") + "/wechat/ipconfig",
+				type: "post",
+				async: false,
+				success: function (result) {
+					IMAGE_SERVICE = result.ipconfig;
+				}
+			});
+			$.ajax({
+				url: getParam("baseUrl") + "/wechat/setting",
+				type: "post",
+				success: function (result) {
+					that.brandSetting = result.data;
+					that.brand = result.brand;
+					that.redPackageLogo = that.getPicUrl(result.data.redPackageLogo);
+				}
+			});
+			$.ajax({
+				url: getParam("baseUrl") + "/wechat/redConfig",
+				type: "post",
+				success: function (res) {
+					for (var i = 0; i < res.data.length; i++) {
+						if (res.data[i].isActivity == 1) {
+							that.redConfig = res.data[i];
+							return;
+						}
+					}
+				}
+			});
+			var df = getParam("df");
+			if (df) {
+                var shareLink = window.location.href;
+                var urlLink = shareLink.split("?")[1];
+				var object = new Object();
+				var urls = urlLink.split("&");
+				for (var index in urls) {
+					var url = urls[index];
+					var urlValue = url.split("=");
+					var key = urlValue[0];
+                    if (key != "isShareLink"){
+                        object[key] = urlValue[1];
+                    }
+				}
+				object["returnShop"] = "open";
+				$.ajax({
+					url:getParam("baseUrl")+"/wechat/customer/new/updateCustomerShareLink",
+					data: {shareLinkJson : JSON.stringify(object)},
+					dataType:'json',
+					type:"post"
+				});
+			}else if (window.location.href.indexOf("isSetShare") != -1){
+                $.ajax({
+                    url:getParam("baseUrl")+"/wechat/customer/new/updateCustomerShareLink",
+                    data: {shareLinkJson : window.location.href, isLink : true},
+                    dataType:'json',
+                    type:"post"
+                });
+			}
+        },
+        methods:{
+            returnShop: function(){
+                var shopId = getParam("shopId") ? "&shopId=" + getParam("shopId") : "" ;
+                var tableNumber = getParam("tableNumber") ? "&tableNumber=" + getParam("tableNumber") : "" ;
+				var shareCustomer = getParam("shareCustomer");
+				var df = getParam("df");
+				if (shareCustomer && !df){
+					var shareLink = window.location.href;
+					shareLink = shareLink.substring(shareLink.indexOf("=") + 1, shareLink.length);
+					window.location.href = shareLink;
+				}else if (df){
+					var localUrl = window.location.href;
+					localUrl = localUrl.substring(localUrl.indexOf("?"));
+					window.location.href = getParam("baseUrl") + "/wechat/index" + localUrl + "&returnShop=open";
+				}else {
+					window.location.href = getParam("baseUrl") + "/wechat/index?returnShop=open&qiehuan=qiehuan&subpage=tangshi" + shopId + tableNumber;
+				}
+            },
+			getPicUrl: function(pic){
+				if(pic){
+					if(pic.substring(0,4)=="http"){
+						return pic;
+					}else{
+						return IMAGE_SERVICE +pic;
+					}
+				}else{
+					return baseUrl+'/wechat/assets/img/resto.png';
+				}
+			}
+        }
+    })
+</script>
+</body>
+</html>

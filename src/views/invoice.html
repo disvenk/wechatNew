@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+		<meta name="format-detection" content="telephone=no"/>
+		<title>发票抬头</title>
+		<link href="//cdn.bootcss.com/weui/1.1.2/style/weui.css" rel="stylesheet">
+		<link href="../assets/css/Font-Awesome-3.2.1/css/font-awesome.min.css" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="../assets/css/invoices.css"/>
+		<script src="../assets/js/custom/util.js"></script>
+		<style type="text/css">
+			@media screen and (min-width: 370px) {
+				html,body {
+					font-size: 15px;
+				}
+				.weui_success_toast	{
+					font-size: 16px;
+				}	
+				.codeImg {
+					width: 45%;
+				}	
+				.codeInfo {
+				    margin: 30px 5%;
+				    padding: 6% 0;
+				}
+			}
+			@media screen and (min-width: 400px) {
+				html,body {
+					font-size: 16px;
+				}	
+				.weui_success_toast	{
+					font-size: 18px;
+				}	
+				.codeImg {
+					width: 50%;
+				}		
+			}
+			.weui-cell__bd.margin {
+				margin-right: 32vw;
+			}
+		 	input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
+			　　color: #B1AEAE;		
+		　　}			
+		　　input:-moz-placeholder, textarea:-moz-placeholder {			
+		　　		color:#B1AEAE;		
+		　　}			
+			input::-moz-placeholder, textarea::-moz-placeholder {			
+		　　		color:#B1AEAE;		
+		　　}			
+		　　input:-ms-input-placeholder, textarea:-ms-input-placeholder {			
+		　　		color:#B1AEAE;		
+		　　}
+		</style>
+	</head>
+	
+	<body id="app">
+		<div class="weui-tab">
+            <div class="weui_title">
+	            <a v-link="{name: f.routerName}" class="weui_flex_item" v-for="f in paperTypeList" @click="selectType(f)">
+	            	<span class="headerText" :class="{active:choiceType == f.selectMenuType}">{{f.name}}</span>
+	            </a>
+	        </div>
+            <div style="height: 100%;">
+				<router-view></router-view>	
+            </div>
+			<weui-dialog :show.sync="wMessage.show" :msg="wMessage.message" :type="wMessage.type"></weui-dialog>
+        </div>
+        <!--发票抬头-->
+        <template id="head-temp">			
+			<div class="full-height" style="background-color: #f8f8f8;"> 						        
+				<div class="weui-cell weui-cell_access" v-for="f in inVoiceList" @click="showInVoice(f)" >
+	                <div class="weui-cell__bd">
+	                    <p>{{f.name}}</p>
+	                    <p class="weui-btn weui-btn_mini" style="background-color: #0398ff;margin-top: 10px;" v-if="f.type == 1">单位</p>
+	                    <p class="weui-btn weui-btn_mini" style="background-color: #ff7421;margin-top: 10px;" v-if="f.type == 2">个人</p>
+	                    <p class="weui-btn weui-btn_mini" style="color: #000;" v-if="f.state == 1">默认</p>
+	                </div>
+	                <div class="weui-cell__ft"></div>
+	            </div>	 
+	            <div class="noVoices" v-if="inVoiceList.length==0">
+					<p>暂未设置任何发票抬头</p>
+					<p>点击下方+添加</p>			
+		        </div>
+		        
+		        <button type="button" class="weui-btn weui-btn_primary" id="addBtn" @click="addInvoices">
+	        		<img class="addImg" src="../assets/img/add.png" />
+		        </button>		        
+			</div>
+			
+			<div class="weui_success_toast" v-if="show"> 
+				<!--单位-->
+	            <div v-if="inVoice.type == 1">
+	            	<div class="weui_type">
+		                <div class="weui-cell__hd">
+		                	<label class="weui-label">名称</label>
+		                </div>
+		                <div class="weui-cell__bd" v-if="editBtn">{{inVoice.name}}</div>		                
+		                <div class="weui-cell__bd" v-if="!editBtn">
+		                    <input class="weui-input" type="text" placeholder="单位名称(必填)" v-model="inVoice.name" maxlength="25">	
+		                </div>
+		            </div>
+		            <div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">税号</label></div>
+		                <div class="weui-cell__bd" v-if="editBtn">{{inVoice.dutyParagraph}}</div>              
+		                <div class="weui-cell__bd" v-if="!editBtn">
+		                    <input class="weui-input" type="text" placeholder="单位税号(必填)" v-model="inVoice.dutyParagraph" maxlength="20">
+		                </div>
+		            </div>
+	        		<div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">单位地址</label></div>
+		                <div class="weui-cell__bd" v-if="editBtn">{{inVoice.companyAddress}}</div>
+		                <div class="weui-cell__bd" v-if="!editBtn">
+		                    <input class="weui-input" type="text" placeholder="单位地址信息" v-model="inVoice.companyAddress">
+		                </div>		                
+		            </div>
+		            <div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">开户银行</label></div>
+		                <div class="weui-cell__bd" v-if="editBtn">{{inVoice.bankOfDeposit}}</div>
+		                <div class="weui-cell__bd" v-if="!editBtn">
+		                    <input class="weui-input" type="text" placeholder="开户银行名称" v-model="inVoice.bankOfDeposit" >
+		                </div>
+		            </div>
+		            <div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">银行账户</label></div>
+		                <div class="weui-cell__bd" v-if="editBtn">{{inVoice.bankNumber}}</div>
+		                <div class="weui-cell__bd" v-if="!editBtn">
+		                    <input class="weui-input" type="tel" placeholder="银行账户号码" v-model="inVoice.bankNumber" maxlength="19">
+		                </div>
+		            </div>		            
+		            <div class="weui-cell" v-if="inVoice.id">
+                        <div class="weui-cell__bd">
+                            <p>设为默认</p>
+                        </div>
+                        <div class="weui-cell__ft">
+	                        <span class="weui_switch useaccount" :class="{checkedDefult:checkAccount}" @click="useChecked"></span>
+                        </div>
+                    </div>
+                    <div class="codeInfo">
+                    	<img class="codeImg" src="{{codeSrc}}" alt="二维码" />
+                    	<p>抬头二维码</p>
+                    </div>
+	            </div>
+	            <!--个人-->
+				<div v-if="inVoice.type==2">
+        			<div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">姓名</label></div>
+		                <div class="weui-cell__bd" v-if="editBtn">{{inVoice.name}}</div>
+		                <div class="weui-cell__bd" v-if="!editBtn">
+		                    <input class="weui-input" type="text" placeholder="姓名(必填)" v-model="inVoice.name" >
+		                </div>
+		            </div>
+		            <div class="weui-cell" v-if="inVoice.id">
+                        <div class="weui-cell__bd">
+                            <p>设为默认</p>
+                        </div>
+                        <div class="weui-cell__ft">
+	                        <span class="weui_switch useaccount" :class="{checkedDefult:checkAccount}" @click="useChecked"></span>
+                        </div>
+                    </div>
+                    <div class="codeInfo" style="position: fixed;bottom: 30px;">
+                    	<img class="codeImg" src="{{codeSrc}}" alt="二维码" />
+                    	<p>抬头二维码</p>
+                    </div>
+        		</div> 
+        		
+        		<button type="button" class="weui-btn weui-btn_primary" id="addBtn" v-if="inVoice.id && !editBtn" @click="saveState">保存</button>
+        		<button type="button" class="weui-btn weui-btn_primary" id="addBtn" v-if="inVoice.id && editBtn" @click="editState">编辑</button>
+        		<button type="button" class="weui-btn weui-btn_primary" id="addBtn" v-if="!inVoice.id" @click="saveState">返回</button>
+	        </div> 	        
+			<router-view></router-view>	
+        </template>
+        <!--抬头保存-->
+        <template id="detail-temp">
+        	<div class="weui_success_toast" style="font-size: 16px;">       		
+        		<div class="weui-cell" style="border-bottom:1px solid #dfdfdf;">
+	                <div class="weui-cell__bd">
+                    	<span style="vertical-align: middle;">抬头类型</span>
+                    	<span class="weuiBtn weui_btn_mini" v-for="f in typeList" @click="changeType(f)" :class="{active:currentType.type == f.type}">{{f.name}}</span>
+	                </div>
+	            </div>	            
+	            <div v-if="currentType.type==1">
+	            	<div class="weui_type">
+		                <div class="weui-cell__hd">
+		                	<label class="weui-label">名称</label>
+		                </div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="text" placeholder="单位名称(必填)" v-model="companyName" maxlength="25">	
+		                </div>
+		            </div>
+		            <div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">税号</label></div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="text" placeholder="单位税号(必填)" v-model="taxNum" maxlength="20">
+		                </div>
+		            </div>
+	        		<div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">单位地址</label></div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="text" placeholder="单位地址信息" v-model="address">
+		                </div>
+		            </div>
+	        		<div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">电话号码</label></div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="tel" placeholder="电话号码" v-model="telephone" maxlength="11">
+		                </div>
+		            </div>
+		            <div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">开户银行</label></div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="text" placeholder="开户银行名称" v-model="bankName" >
+		                </div>
+		            </div>
+		            <div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">银行账户</label></div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="tel" placeholder="银行账户号码" v-model="bankNum" maxlength="19">
+		                </div>
+		            </div>		            
+	            </div>
+	            
+        		<div v-if="currentType.type==2">
+        			<div class="weui_type">
+		                <div class="weui-cell__hd"><label class="weui-label">姓名</label></div>
+		                <div class="weui-cell__bd">
+		                    <input class="weui-input" type="text" placeholder="姓名(必填)" v-model="personName" >
+		                </div>
+		            </div>
+        		</div> 
+        		<button type="button" class="weui-btn weui-btn_primary" id="addBtn" @click="saveInvoice" v-show="showAddBtn">保存</button>
+	        </div> 	        
+        </template>
+        <!--申请发票-->
+        <template id="apply-temp">       	
+        	<div class="full-height" style="background-color: #f8f8f8;" v-if="applyInvoice">
+        		<div class="weui-cell">
+	                <div class="weui-cell__bd">
+                    	<span style="vertical-align: middle;">发票类型</span>
+                    	<span class="weuiBtn weui_btn_mini" @click="changeType(f)" :class="{active:currentType.state == f.state}" v-for="f in typeList">
+                    		{{f.name}}
+                    	</span>                   
+	                </div>
+	            </div>
+        		<div class="weui-cell" v-if="ticketMode == 1">
+	                <div class="weui-cell__bd">
+                    	<span>发票内容</span>
+                    	<span style="position: absolute;right: 15px;">餐饮费</span>	                    
+	                </div>
+	            </div>
+	            <div class="weui-cell" v-if="ticketMode == 1">
+	                <div class="weui-cell__bd">
+                    	<span>发票金额</span>
+                    	<span style="position: absolute;right: 15px;">{{alreadyChoiceMoney}}</span>	                    
+	                </div>
+	            </div>
+	            
+	            <div v-if="ticketMode == 2 && currentType.state == 1">
+	            	<div class="weui-cell">
+		                <div class="weui-cell__bd"><span>发票抬头</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="单位名称(必填)" v-model="eleTicketInfo.name" maxlength="25">	
+		                </div>
+		                <div class="weui-cell__ft" @click="choiceVoices" style="position: absolute;right: 10px;color: #1AAD19;">请选择抬头</div>
+		            </div>
+		            <div class="weui-cell">
+		                <div class="weui-cell__bd"><span>税号</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="单位税号(必填)" v-model="eleTicketInfo.dutyParagraph" maxlength="20">	
+		                </div>
+		            </div>
+		            <div class="weui-cell">
+		                <div class="weui-cell__bd"><span>单位地址</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="单位地址" v-model="eleTicketInfo.companyAddress">	
+		                </div>
+		            </div>
+		            <div class="weui-cell">
+		                <div class="weui-cell__bd"><span>电话号码</span>                    
+		                </div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="tel" placeholder="电话号码" v-model="eleTicketInfo.mobileNo">	
+		                </div>
+		            </div>
+		            <div class="weui-cell">
+		                <div class="weui-cell__bd"><span>开户银行</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="开户银行" v-model="eleTicketInfo.bankOfDeposit">	
+		                </div>
+		            </div>
+		            <div class="weui-cell">
+		                <div class="weui-cell__bd"><span>银行账户</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="银行账户" v-model="eleTicketInfo.bankNumber">	
+		                </div>
+		            </div>
+		            <!--<div class="weui-cell">
+		                <div class="weui-cell__bd"><span>邮箱</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="邮箱" v-model="eleTicketInfo.email">	
+		                </div>
+		            </div>-->
+	            </div>
+	            
+	            <div v-if="ticketMode == 2 && currentType.state == 2">
+	            	<div class="weui-cell">
+		                <div class="weui-cell__bd"><span>发票抬头</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="单位名称(必填)" v-model="eleTicketInfo.name" maxlength="25">	
+		                </div>
+		                <div class="weui-cell__ft" @click="choiceVoices" style="position: absolute;right: 10px;color: #1AAD19;">请选择抬头</div>
+		            </div>
+		            <!--<div class="weui-cell">
+		                <div class="weui-cell__bd"><span>邮箱</span></div>
+		                <div class="weui-cell__bd margin">
+		                    <input class="weui-input" type="text" placeholder="邮箱" v-model="eleTicketInfo.email">	
+		                </div>
+		            </div>-->
+	            </div>
+	            	            
+	            <div v-if="ticketMode == 1">
+	            	<!--没有默认的抬头-->
+		            <div class="weui-cell weui-cell_access" style="border-top: 8px solid #f8f8f8;" @click="choiceVoices" >
+		                <div class="weui-cell__bd"><span>发票抬头</span></div>
+		                <div class="weui-cell__ft"></div>
+		            </div>
+	            	<!--选择的是个人抬头-->
+	            	<div class="weui-cell weui-cell_access" v-if="selectInfor.type == 2">
+		                <div class="weui-cell__bd">
+	                    	<p style="color: #e73047;">*发票抬头</p>  
+	                    	<p>{{selectInfor.name}}</p>
+		                </div>
+		            </div> 	   
+		            <!--选择的是企业抬头-->
+		            <div style="border-top:8px solid #f8f8f8;" v-if="selectInfor.type == 1">
+		            	<div class="weui-cell weui-cell_access">
+			                <div class="weui-cell__bd">
+		                    	<p style="color: #e73047;">*发票抬头</p>  
+		                    	<p>{{selectInfor.name}}</p>
+			                </div>
+			            </div>
+			            <div class="weui-cell weui-cell_access">
+			                <div class="weui-cell__bd">
+		                    	<p style="color: #e73047;">*纳税人识别号(15-20位)</p>  
+		                    	<p>{{selectInfor.dutyParagraph}}</p>
+			                </div>
+			            </div>
+		            </div>		            
+	            </div>
+	            
+	            <button type="button" class="weui-btn weui-btn_primary" id="addBtn" @click="confirmInvoice">确定</button>	            
+	        </div>
+	        
+	        <div class="full-height" v-if="orderInfo"> 
+	        	<div id="hasOrderInfo">	        		
+			        <div>
+			        	<div class="weui_type" v-if="orderList.length>0 && ticketMode == 1" v-for="f in orderList">			        		
+					        <div class='weui-cell__bd checkbox'>
+							    <input type='checkbox' id="{{f.orderNumber}}" name='checkboox[]'>
+							    <label for="{{f.orderNumber}}" @click="selectBox(f)">
+							    	<p style="margin-left: 47px;">订单号:<span style="margin-left: 5px;">{{f.orderNumber}}</span></p>
+				                	<p style="margin-left: 47px;">支付时间:<span style="margin-left: 5px;">{{new Date(f.payTime.time).format("yyyy-MM-dd hh:mm")}}</span></p>	
+				                    <p style="margin-top: 3px;margin-left: 47px;">
+				                    	<span>订单金额:<i style="margin-left: 5px;">￥{{f.orderMoney}}</i></span>	                    	
+				                    	<span style="position: absolute;right: 6px;">可开票金额:<i style="margin-left: 5px;">￥{{f.receiptMoney}}</i></span>
+				                    </p>
+							    </label>							    
+							</div>
+			        	</div>
+			        	<div class="weui_type" v-if="orderList.length>0 && ticketMode == 2" v-for="f in orderList">			        		
+						    <label>
+						    	<p>订单号:<span style="margin-left: 5px;">{{f.orderNumber}}</span></p>
+			                	<p>支付时间:<span style="margin-left: 5px;">{{new Date(f.payTime.time).format("yyyy-MM-dd hh:mm")}}</span></p>	
+			                    <p style="margin-top: 3px;">
+			                    	<span>订单金额:<i style="margin-left: 5px;">￥{{f.orderMoney}}</i></span>	                    	
+			                    	<span style="margin-left: 10px;">可开票金额:<i style="margin-left: 5px;">￥{{f.receiptMoney}}</i></span>
+			                    </p>
+						    </label>	
+						    <button type="button" class="weui-btn weui-btn_mini weui-btn_primary" id="emailBtn" @click="getTicketInfo(f)">申请开票</button>
+			        	</div>	
+		            </div>
+	            </div>
+	            
+	            <div class="successInfo" v-if="!orderList.length">
+        			<p>暂未有任何开票订单</p>
+        		</div>
+        		<div class="applyBtn" v-if="ticketMode == 1"> 
+        			<div class="middle" style="font-size: 1.1rem;"> 					
+    					<span class="applyText" style="margin-left: 20px;">已选 <i style="margin-left: 10px;">{{alreadyChoice.length}}个订单,</i></span>
+    					<span class="applyText" style="margin-left: 5px;">共{{alreadyChoiceMoney}}元</span>   					
+		        	</div>
+		        	<div class="middle" style="font-size: 1.1rem;">					
+    					<span class="weui_apply_btn" :class="{active:alreadyChoice.length > 0}" @click="applyTicket">申请发票</span>
+		        	</div>
+		        </div>
+	        </div>
+	        <voices-list :show.sync="choiceVoiceDialog.show" :type="choiceVoiceDialog.type"></voices-list>
+	        <apply-success :show.sync="applySuccessDialog.show"></apply-success>
+	        <router-view></router-view>	        
+        </template>       
+        <!--历史记录-->
+        <template id="history-temp">
+        	<div class="full-height" id="historyList" style="background-color: #f8f8f8;">     
+        		<div>
+	        		<div class="weui-cell weui-cell_access" style="padding: 12px;" v-for="f in historyList">
+		                <div class="weui-cell__bd" :class="{active:f.state == 0 || f.state == 1}">
+		                    <p>订单号 : {{f.orderNumber}}</p>
+		                    <p>支付时间 : {{new Date(f.payTime.time).format("yyyy-MM-dd hh:mm")}}</p>
+		                    <p>
+		                    	<span>订单金额 : ￥{{f.orderMoney}}</span>
+		                    	<span style="margin-left: 15px;">开票金额 : ￥{{f.receiptMoney}}</span>
+		                    	<button v-if="ticketMode == 2" type="button" class="weui-btn weui-btn_mini weui-btn_primary" id="emailBtn" @click="sendEmail(f)">发送邮箱</button>
+		                    </p>
+		                </div>
+		                <img class="billImg" v-if="f.state == 0" src="../assets/img/noBilling.png" />
+		                <img class="billImg" v-if="f.state == 1" src="../assets/img/billing.png" />
+		            </div>		            
+	            </div>
+	            <div class="successInfo" v-if="!historyList.length">
+	    			<p>暂未有任何开票订单</p>
+	    		</div>
+    		</div>  
+    		<email-dialog :show.sync="emailDialog.show" :ticket="emailDialog.ticket"></email-dialog>
+        </template>
+        <script type="text/javascript">
+			var baseUrl = getParam("baseUrl");
+	        //baseUrl = "http://test0001.tt.com:8081";
+		</script>
+        <script src="../assets/js/vue1.0.17.min.js?v=2321"></script>
+        <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+		<script src="../assets/js/custom/invoice/iscroll.js"></script>
+		<script src="../assets/js/custom/invoice/service.js"></script>		   
+		<script src="../assets/js/vue-router.js"></script>
+		<script type="text/javascript">
+			Vue.component("weui-dialog", {
+			    props: ['show','msg','type'],
+			    template: '<div class="weui_loading_toast" v-if="show">' +
+			    '<div class="weui_mask_transparent" @click="close"></div>' +
+			    '<div class="weui_toast msg-dialog">' +		
+					'<img src="../assets/img/correctImg.png" class="msgImg" v-if="type && type == 1" />' +
+					'<img src="../assets/img/errorMsg.png" class="msgImg" v-if="type && type == 2" />' +
+			    	'<p>{{msg}}</p>' +
+			    '</div>' +
+			    '</div>',
+			    methods: {
+			        close: function () {
+			            this.show = false;
+			        }
+			    }
+			});
+		</script>
+        <script src="../assets/js/custom/invoice/head-page.js"></script>        
+        <script src="../assets/js/custom/invoice/apply-page.js"></script>
+        <script src="../assets/js/custom/invoice/history-page.js"></script>
+        <script src="../assets/js/custom/invoice/detail-page.js"></script>
+		<script src="../assets/js/custom/invoice/main.js"></script>
+		<script src="../assets/js/custom/invoice/router.js"></script>
+		<script type="text/javascript">		
+			
+			document.addEventListener('touchmove', function (e) {
+				e.preventDefault();
+			}, false);
+						
+			function iScrollClick() {
+		        if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)) return false;
+		        if (/Chrome/i.test(navigator.userAgent)) return (/Android/i.test(navigator.userAgent));
+		        if (/Silk/i.test(navigator.userAgent)) return false;
+		        if (/Android/i.test(navigator.userAgent)) {
+		            var s = navigator.userAgent.substr(navigator.userAgent.indexOf('Android') + 8, 3);
+		            return parseFloat(s[0] + s[3]) < 44 ? false : true
+		        }
+		    }
+		</script>
+	</body>
+</html>

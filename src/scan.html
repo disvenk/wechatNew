@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+		<title>加载中</title>
+		<style type="text/css">
+			html,body {
+				position: relative;
+				height: 100%;
+				overflow-y: hidden;
+				font-family: "微软雅黑";
+			}
+			.weui_mask {
+			    position: fixed;
+			    background: #fff;
+			    z-index: 2;
+			    width: 100%;
+			    height: 100%;
+			    top: 0;
+			    left: 0;
+			}
+			.weui_toast_wait {
+			    position: fixed;
+			    z-index: 300;
+			    width: 7em;
+			    min-height: 7em;
+			    top: 30%;
+			    left: 50%;
+			    margin-left: -3.5em;
+			    background: #fff;
+			    text-align: center;
+			    border-radius: 5px;
+			    color: #FFFFFF;
+			}
+			img {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body id="app">
+		<!--loading-->
+		<div class="weui_loading_alert" v-if="waitLoading">
+		    <div class="weui_mask" style="background-color: #fff;"></div>
+		    <div class="weui_toast_wait">
+				<img src="assets/img/loadingo.gif" />
+				<div style="text-align: center;color: #bababa;font-size: 18px;">正在加载中...</div>
+		    </div>
+		</div>
+	</body>
+
+	<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+	<script src="//res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+	<script src="assets/js/jquery.circliful.min.js"></script>
+	<script src="assets/js/vue1.0.17.min.js?v=34566"></script>
+	<script src="//api.map.baidu.com/api?v=2.0&ak=IIH5pl4S3VE81wGVG3aYL3PWOirz2uCP"></script>
+	<script src="assets/js/custom/wxFunction.js"></script>
+	<script src="assets/js/custom/util.js"></script>
+
+	<script type="text/javascript">
+
+		var baseUrl = getParam("baseUrl");
+
+		var vm = new Vue({
+			el: "#app",
+			data: function () {
+				return {
+					waitLoading:true,
+				}
+			},
+			created:function(){
+				var that = this;
+				var readyFunction = [];
+				var wxIsReady = false;
+
+				$.ajax({
+					url: baseUrl + "/wechat/jsconfig",
+					type: "post",
+					data: {"query": getUrlParam(window.location.href), "qiehuan":"scan"},
+					async: false,
+					dataType: "json",
+					success: function (result) {
+						wx.config(result.data);
+						readyFunction = [];
+						wxIsReady = false;
+						that.waitLoading = false;
+					}
+				});
+
+				wx.ready(function () {
+					wxIsReady = true;
+					that.waitLoading = false;
+					wx.scanQRCode({
+						needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+						scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+						success: function (res) {
+							var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+							window.location.href=result;
+						}
+					});
+
+					for (var i in readyFunction) {
+						var n = readyFunction[i];
+						if (typeof n == "function") {
+							n();
+							console.info("执行wxReady function:" + n);
+						}
+					}
+				});
+
+				//执行微信方法的接口
+				function executeWxFunction(fun) {
+					if (typeof fun == "function") {
+						if (wxIsReady) {
+							fun();
+						} else {
+							readyFunction.push(fun);
+						}
+					}
+				}
+			},
+			methods:{
+			},
+		})
+	</script>
+</html>

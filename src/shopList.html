@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>店铺列表</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+	<meta name="format-detection" content="telephone=no"/>
+	<link rel="stylesheet" href="assets/css/weui.css" />
+	<link rel="stylesheet" href="assets/css/example.css" />
+	<link rel="stylesheet" href="assets/css/weui-searchbar.css" />
+	<script src="assets/js/custom/util.js"></script>
+</head>
+<body id="vueControl" style="display: none;">
+<div class="weui-content">
+	<div class="weui-search-bar" id="searchBar">
+		<div class="weui-search-bar_box">
+			<i class="weui-icon-search"></i>
+			<input type="input" class="weui-search-bar_input" id="searchInput" placeholder="请输入城市或门店名称" v-model="searchName" @click="currentCityList">
+		</div>
+		<a href="javascript:" class="weui-search-bar_cancel-btn" id="searchCancel" @click="showCityList">取消</a>
+	</div>
+</div>
+
+<div class="weui-flex choice-city-result" v-if="showResult">
+	<div class="weui-flex_item">查询结果</div>
+</div>
+
+<div class="weui-cell" id="scroll-wapper">
+	<div class="scroll-list">
+		<div id="curShopList" v-if="showShopList">
+			<div class="weui-cell">
+				<div class="weui-flex choice-city" style="text-align: left;padding-left: 5px;">
+					<div class="weui-flex_item">请选择城市</div>
+				</div>
+				<div class="cur-city">
+					<div v-for="city in dis_citylist" class="weui-flex_items" :class="{'active':searchName == city.city}" @click="showTypeCity(city.city)">
+						<span class="weui-flex_items_span" >{{city.city}}</span>
+					</div>
+				</div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-flex choice-city" style="text-align: left;padding-left: 5px;">
+					<div class="weui-flex_item">距离您当前位置最近的门店</div>
+				</div>
+				<div class="weui-flex cur-city" style="justify-content: space-between;background: initial;margin: 10px;" @click="switchShopInfo(firstShop.id)">
+					<div class="weui-flex_item nearestCity" v-if="firstShop">{{firstShop.name}}</div>
+					<span>{{firstShop.distance}}</span>
+				</div>
+			</div>
+			<div class="weui-cell" style="border-bottom: 2px solid #fff;">
+				<div class="weui-flex choice-city" style="text-align: left;padding-left: 5px;">
+					<div class="weui-flex_item">门店列表</div>
+				</div>
+			</div>
+		</div>
+
+		<div style="border-bottom: 2px solid #fff;" v-for="shop in waimai_shoplist | filterBy searchName in 'name' 'city'" v-if="shop.isTakeout == 1 && pageType == 'waimai'">
+			<div class="weui-shopList" @click="switchShopInfo(shop.id)">
+				<img v-if="!shop.photo" class="shopList-photo" src="assets/img/resto.png"/>
+				<img v-if="shop.photo" class="shopList-photo" src="{{shop.photo}}"/>
+				<p class="weui-shopListIntro">
+					<span class="shopList-name">{{shop.name}}</span>
+					<span class="shopList-explain"></span>
+					<span class="shopList-address"><img src=" assets/img/mapsign.png"/>{{shop.city}}</span>
+					<span class="shopList-distance">{{shop.distance}}</span>
+				</p>
+			</div>
+		</div>
+		<div style="border-bottom: 2px solid #fff;" v-for="shop in dis_shoplist | filterBy searchName in 'name' 'city'" v-if="pageType != 'waimai'">
+			<div class="weui-shopList" @click="switchShopInfo(shop.id)">
+				<img v-if="!shop.photo" class="shopList-photo" src="assets/img/resto.png"/>
+				<img v-if="shop.photo" class="shopList-photo" src="{{shop.photo}}"/>
+				<p class="weui-shopListIntro">
+					<span class="shopList-name">{{shop.name}}</span>
+					<span class="shopList-explain"></span>
+					<span class="shopList-address"><img src=" assets/img/mapsign.png"/>{{shop.city}}</span>
+					<span class="shopList-distance">{{shop.distance}}</span>
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+<weui-loading :show.sync="loadShow"></weui-loading>
+
+<script type="text/javascript">
+	var baseUrl = getParam("baseUrl");
+	//baseUrl = "http://ecosystem.tt.com:8083";
+	
+</script>
+
+<script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="//res.wx.qq.com/open/js/jweixin-1.0.0.js" ></script>
+<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+<script src="assets/js/vue1.0.17.min.js?v=2334"></script>
+<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll.min.js"></script>
+<script src="//cdn.bootcss.com/iScroll/5.1.3/iscroll-probe.min.js"></script>
+<script src="//api.map.baidu.com/api?v=2.0&ak=IIH5pl4S3VE81wGVG3aYL3PWOirz2uCP"></script>
+<script src="assets/js/custom/wxFunction.js"></script>
+<script src="assets/js/custom/util.js"></script>
+<script src="assets/js/custom/service.js?v=222"></script>
+<script type="text/javascript">
+	$(function(){
+		var searchBar = $('#searchBar');
+		var	searchInput = $('#searchInput');
+		var	searchCancel = $('#searchCancel');
+		function hideBtn(){
+			searchCancel.css('display','block')
+		}
+		function showBtn(){
+			searchCancel.css('display','none')
+		}
+		searchInput.on('click',function(){
+			hideBtn();
+		})
+		searchCancel.on('click',function(){
+			showBtn();
+		})
+
+	});
+
+	function iScrollClick(){
+		if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)) return false;
+		if (/Chrome/i.test(navigator.userAgent)) return (/Android/i.test(navigator.userAgent));
+		if (/Silk/i.test(navigator.userAgent)) return false;
+		if (/Android/i.test(navigator.userAgent)) {
+		   var s=navigator.userAgent.substr(navigator.userAgent.indexOf('Android')+8,3);
+		   return parseFloat(s[0]+s[3]) < 44 ? false : true
+	    }
+	};
+	$(function () {
+		FastClick.attach(document.body);
+	});	
+
+	/*正在加载弹窗*/
+	Vue.component("weui-loading", {
+	    props: ["msg", "show"],
+	    template: '<div class="weui_loading_toast" v-if="show">' +
+	    '	<div class="weui_mask_transparent" @click="close" style="background:#000;"></div>' +
+	    '	<div class="weui_toast" style="background: initial;width: 100%;height: 100%;top: 30%;left:0;margin-left:0;">' +
+	//	'		<img src="assets/img/loading1.gif" style="width: 12rem;height: 9rem;" />'+
+		'		<img src="assets/img/restowechat.png" style="width: 8rem;height: 8rem;position: relative;" />'+	
+		'		<div class="programContainer">'+ 
+		'			<div class="progress">'+ 
+		'				<div class="progress-bar"></div>'+
+		'			</div>'+ 
+		'		</div>'+	
+	    '		<p style="font-size: 16px;">{{msg||"加载中，请稍候"}}</p>' +  
+	    '		<p class="footTitle" style="bottom:3rem;">Resto+</p>' +   
+	    '		<p class="footTitle">400-805-1711</p>'+
+	    '	</div>' +
+	    '</div>',
+	    methods: {
+	        close: function () {
+	           // this.show = false;
+	        }
+	    }
+	});
+</script>
+<script type="text/javascript">
+	var vm = new Vue({
+		el:"#vueControl",
+		data: function () {
+			return {
+				map: null,
+				downHeight: "",
+				lng: 121.47489949,
+				lat: 31.24916171,
+				name: null,
+				dis_shoplist: [],
+				dis_citylist: [],
+				searchName : null,
+				showShopList:true,
+				showResult:false,
+				wxIsReady:false,
+				mypoint:null,
+				myScroll : null,
+				loadShow : false,
+				shopIndexOrder:null,
+				pageType:null,
+			}
+		},
+		watch: {
+			'searchName': function (val, oldVal) {
+				this.$nextTick(function () {
+					this.myScroll.refresh();
+				})
+			},
+			'mypoint':function (newVal, oldVal){
+				var that = this;
+				if(newVal != null){
+					that.shopList();
+				}
+			}
+		},
+		computed: {
+			waimai_shoplist:function(){
+				var that = this;
+				var waimaiList = [];
+	            for(var i = 0;i<that.dis_shoplist.length;i++){
+					var waimaiShop = that.dis_shoplist[i];
+					if(waimaiShop.isTakeout == 1){
+						waimaiList.push(waimaiShop);
+					}
+				}
+            	return waimaiList;
+			},
+			firstShop:function(){
+				var that = this;
+				var firstShop = {};
+				if(that.pageType == 'waimai'){
+					firstShop = that.waimai_shoplist[0];
+				}else{
+					firstShop = that.dis_shoplist[0];
+				}
+				return firstShop;
+			}
+		},
+		methods:{
+			addBlueMarker: function (lng, lat) {
+				if (this.map) {
+					var toPoint = new BMap.Point(lng, lat);
+					var myIcon = new BMap.Icon("https://api.map.baidu.com/img/markers.png", new BMap.Size(23, 25), {
+						offset: new BMap.Size(10, 25), // 指定定位位置
+						imageOffset: new BMap.Size(0, 0 - 10 * 25) // 设置图片偏移
+					});
+					var marker = new BMap.Marker(toPoint, {icon: myIcon});
+					this.map.addOverlay(marker);
+					return marker;
+				}
+			},
+			addMyMarker: function (lng, lat) {
+				if (this.myMarker) {
+					this.myMarker.hide();
+					this.myMarker = addBlueMarker(lng, lat);
+					this.lng = lng;
+					this.lat = lat;
+				}
+			},
+			addMarker: function (lng, lat) {
+				if (this.map) {
+					var point = new BMap.Point(lng, lat);
+					var marker = new BMap.Marker(point);
+					this.map.addOverlay(marker);
+					return marker;
+				}
+			},
+			showCityList:function(){
+				var that = this;
+				this.showShopList = true;
+				this.showResult = false;
+				this.searchName = "";
+				Vue.nextTick(function () {
+					that.myScroll.refresh();
+				});
+
+				Vue.nextTick(function () {
+					that.myScroll.refresh();
+					that.myScroll.scrollTo(0, 0, 2000, IScroll.utils.ease.circular);
+				});
+			},
+			currentCityList:function(){
+				var that = this;
+				this.showShopList = false;
+				this.showResult = true;
+
+				Vue.nextTick(function () {
+					that.myScroll.scrollTo(0, 0, 2000, IScroll.utils.ease.circular);
+				});
+			},
+			switchShopInfo:function(sid){
+				var that = this;
+				switchShopApi(sid, function (result) {
+					if (result.success) {
+                       	var search = window.location.search;                      
+//						search = search.replace("subpage=home","subpage=tangshi").replace("subpage=my","subpage=tangshi").replace("subpage=fans","subpage=tangshi")
+						if(search.indexOf("qiehuan") == -1){
+							search = search + "&qiehuan=qiehuan";
+						}
+						window.location.href = getParam("baseUrl")+"/wechat/index"+search;
+//						window.location.href = "/wechatNew/src/index.html"+search;
+					} else {
+						this.showMessage(result.message);
+					}
+				});
+			},
+			showTypeCity:function(cityName){
+				this.searchName = cityName;
+				var that = this;
+				Vue.nextTick(function () {
+					that.myScroll.refresh();
+					that.myScroll.scrollTo(0, 0, 2000, IScroll.utils.ease.circular);
+				});
+			},
+			cityList:　function(){
+				var that = this;
+				selectByShopCity(function(result){
+					for(var i = 0;i< result.length;i++){
+						var cityInfo = result[i];
+						that.dis_citylist.push(cityInfo);
+					}
+				});
+			},
+			shopList: function(){
+				var that = this;
+				var point = new BMap.Point(this.lng, this.lat); // 创建点坐标
+
+				this.map = new BMap.Map();
+				var gc = new BMap.Geocoder();
+				gc.getLocation(point, function (rs) {
+					var addComp = rs.addressComponents;
+				});
+
+				var shoplist = [];
+				if(that.mypoint == null){
+					that.mypoint = new BMap.Point(that.lng, that.lat);
+				}
+				selectByCityOrName(that.searchName,function(result){
+					for(var i = 0;i< result.length;i++){
+						var s = result[i];
+						var shop = $.extend({}, s);
+						shoplist.push(shop);
+						var pointB = new BMap.Point(shop.longitude, shop.latitude);
+						var distance = that.map.getDistance(that.mypoint, pointB).toFixed(0);
+						shop.distance = distance == "NaN" ? 99999999999 :distance;
+					}
+					var shoplistorgin = shoplist;
+					var shoplisttemp = [];
+					if(that.mypoint.lng!="121.47489949" && that.mypoint.lat!="31.24916171"){
+						for (var i = 0;i<shoplistorgin.length;i++) {
+							for (var j = i; j < shoplistorgin.length; j++) {
+								if (parseInt(shoplistorgin[i].distance) > parseInt(shoplistorgin[j].distance)) {
+									var temp = shoplistorgin[i];
+									shoplistorgin[i] = shoplistorgin[j];
+									shoplistorgin[j] = temp;
+								}
+							}
+							var sh = shoplistorgin[i];
+							var shopInfo = $.extend({}, sh);
+							that.dis_shoplist.push(shopInfo);
+							var pointA = new BMap.Point(shopInfo.longitude, shopInfo.latitude);
+							var distance = that.map.getDistance(that.mypoint, pointA).toFixed(0);
+							if(that.mypoint.lng=="121.47489949" && that.mypoint.lat=="31.24916171"){
+								shopInfo.distance = "未知";
+							} else {
+								shopInfo.distance = distance == "NaN" ? "未知" : distance;	
+								if(parseInt(shopInfo.distance) > 1000){
+									shopInfo.distance = (Math.round(parseInt(shopInfo.distance)/100)/10).toFixed(2) + "km";						
+								}else if(shopInfo.distance != "未知"){
+									shopInfo.distance = shopInfo.distance +"m";
+								}
+							}
+							shopInfo.photo = getBoPic(shopInfo.photo);
+						}
+					}else{
+						that.dis_shoplist = [];
+						for (var i = 0;i<that.shopIndexOrder.length;i++) {
+							var sh = that.shopIndexOrder[i];
+							var shopInfo = $.extend({}, sh);
+							that.dis_shoplist.push(shopInfo);
+							shopInfo.distance = "未知";
+							shopInfo.photo = getBoPic(shopInfo.photo);
+						}						
+					}											
+					
+					Vue.nextTick(function () {
+						that.myScroll = new IScroll("#scroll-wapper", {
+							click: iScrollClick()
+						});
+						that.myScroll.refresh();
+					});
+					that.loadShow = false;
+				});
+			}
+		},
+		created:function () {
+			var that = this;
+			orderByIndex(function(result){
+				that.shopIndexOrder = result;
+			});
+			if(getParam("loginpage") != null && getParam("loginpage") != ""){
+	            that.pageType = getParam("loginpage");
+	        }
+			this.loadShow = true;
+			$.ajax({
+				url: baseUrl + "/wechat/jsconfig",
+				type: "post",
+				data: {"query": getUrlParam(window.location.href),"qiehuan":"qiehuan"},
+				async: false,
+				dataType: "json",
+				success: function (result) {
+					wx.config(result.data);
+					readyFunction = [];
+					wxIsReady = false;
+				}
+			});
+			wx.ready(function () {
+				wxIsReady = true;
+				for (var i in readyFunction) {
+					var n = readyFunction[i];
+					if (typeof n == "function") {
+						n();
+						console.info("执行wxReady function:" + n);
+					}
+				}
+				wxgetLocation(function(r){
+//					that.mypoint  = new BMap.Point(r.longitude, r.latitude); // 创建点坐标
+					if((r.latitude == undefined || r.latitude == null)&& (r.longitude == undefined || r.longitude == null)){
+						that.shopList();
+					}else{
+						var lng = r.longitude; // 经度，浮点数，范围为180 ~ -180。
+						var lat = r.latitude; // 纬度，浮点数，范围为90 ~ -90
+						var ggPoint = new BMap.Point(lng, lat);
+						var convertor = new BMap.Convertor();
+						var translateCallback = function (data) {
+							if (data.status === 0) {
+								var point = data.points[0];
+								that.addMyMarker(point.lng, point.lat);
+//							map.panTo(new BMap.Point(point.lng, point.lat));
+								that.lng = point.lng;
+								that.lat = point.lat;
+								that.mypoint  = new BMap.Point(that.lng, that.lat); // 创建点坐标
+							}
+						}
+						var pointArr = [];
+						pointArr.push(ggPoint);
+						convertor.translate(pointArr, 3, 5, translateCallback);
+					}
+				});
+			});
+			//执行微信方法的接口
+			function executeWxFunction(fun) {
+				if (typeof fun == "function") {
+					if (wxIsReady) {
+						fun();
+					} else {
+						readyFunction.push(fun);
+					}
+				}
+			};		
+		},
+		ready: function () {
+			this.cityList();
+			$("#vueControl").css("display","block");	
+//			this.downHeight =  $("#scroll-wapper").height();
+						
+		}
+	})
+
+</script>
+</body>
+</html>

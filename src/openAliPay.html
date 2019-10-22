@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>支付宝支付</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+    <meta name="format-detection" content="telephone=no"/>
+    <style>
+    	* {
+    		margin: 0;
+    		padding: 0;
+    	}
+        body{
+            background-color: #F5F4F9;
+            text-align: center;
+            position: relative;
+            height: 100%;
+            overflow-y: hidden;
+        }
+        .arrow{
+            width: 5rem;
+		    height: 5rem;
+		    position: relative;
+		    top: 5px;
+		    right: 10px;
+        }
+        .tips{
+            font-size: 18px;
+            font-weight: bold;
+            font-family: "微软雅黑";
+            margin-top: 1rem;
+        }
+        .browser{
+            width: 200px;
+            height: 200px;
+        }
+        .btn{
+            background-color: #fff;
+		    border: 1px solid #0098E3;
+		    color: #0098E3;
+		    display: block;
+		    padding: 10px 15px;
+		    border-radius: 4px;
+		    font-size: 16px;
+		    text-align: center;
+		    margin: 0 auto;                    
+        }
+        .div_btns {
+    	    display: -webkit-flex;
+		    display: flex;
+		    -webkit-justify-content: space-around;
+		    justify-content: space-between;
+		    flex-wrap: wrap;
+		    margin: 0px 20px;
+    		margin-top: 1rem;
+        }
+        .btn-blue{
+            background-color: #12A2E6;
+            border-color: #12A2E6;
+            color: #FFFFFF;
+        }
+        .btn-top {
+        	margin-top: 1rem;
+        }
+        @media screen and (min-width:374px){
+        	.tips {
+        		margin-top: 2rem;
+        	}
+        	.browser {
+        		margin-top: 1rem;
+        	}
+        	.div_btns {
+	        	margin-top: 3rem;
+	        }
+	        .btn-top{
+	        	margin-top: 2rem;
+	        }
+        }
+        @media screen and (min-width:400px){
+        	.tips {
+        		margin-top: 3rem;
+        	}
+        	.browser {
+        		margin-top: 2rem;
+        	}
+        	.div_btns {
+	        	margin-top: 3rem;
+	        }
+	        .btn-top{
+	        	margin-top: 3rem;
+	        }
+        }
+    </style>
+</head>
+
+<body>
+	<div style="text-align: right;">
+		<img src="assets/img/alipayArrow.png" class="arrow"/>
+	</div>	
+	
+	<img src="assets/img/android_browser.png" id="browserImg" class="browser"/>
+	
+	<p class="tips" id="iosTips" style="display: none;">点击微信右上角“...”，选择在Safari<br/>中打开，前往支付宝支付</p>
+	<p class="tips" id="androidTips" style="display: none;">点击微信右上角“...”，选择在浏览器<br/>中打开，前往支付宝支付</p>
+	
+	<div class="div_btns">
+		<button class="btn" onclick="toMyPage()">已支付完成</button>
+    	<button class="btn" onclick="toMyPage()">取消并返回</button>
+	</div>
+    
+    <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+	<script src="//res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+	<script>
+        //隐藏微信按钮
+        $.ajax({
+            url: location.origin + "/wechat/jsconfig",
+            type: "post",
+            data: {"query": getUrlParam(window.location.href) , "qiehuan" : "openAliPay"},
+            async: false,
+            dataType: "json",
+            success: function (result) {
+                wx.config(result.data);
+            }
+        });
+
+        wx.ready(function(){
+            //批量隐藏功能
+            wx.hideMenuItems({
+                menuList: ['menuItem:share:weiboApp','menuItem:share:QZone','menuItem:share:email','menuItem:share:brand',
+                    'menuItem:copyUrl','menuItem:originPage','menuItem:editTag','menuItem:delete','menuItem:share:facebook',
+                    'menuItem:favorite','menuItem:share:qq','menuItem:share:appMessage','menuItem:share:timeline','menuItem:exposeArticle']
+            });
+        });
+
+		if(getParam("loginpage") != null && getParam("loginpage") != ""){
+		    var pageType = getParam("loginpage");
+		}
+		document.addEventListener('touchmove', function (e) {
+			e.preventDefault();
+		}, false);
+		
+	    window.onload = function() {
+	        if(navigator.userAgent.toLowerCase().indexOf('micromessenger') == -1) {
+	        	window.location.href = location.origin + "/wechat/pay/alipay?orderId=" + getParam("orderId");	        
+	        }else{
+	            var u = navigator.userAgent;
+	            var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+	            document.getElementById("browserImg").src = isiOS?"assets/img/safari.png":"assets/img/android_browser.png";
+	            if(isiOS){
+	            	$("#iosTips").css("display","block");
+	            }else{
+	            	$("#androidTips").css("display","block");
+	            }
+	            //document.getElementById(".tips #textA").innerText = isiOS?"safari":"android";
+	        }
+	    }
+	
+	    function getParam(name) {
+	        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+	        var r = window.location.search.substr(1).match(reg);
+	        if(r != null) return  unescape(r[2]);
+	        return null;
+	    }
+	    
+	    function toMyPage() {
+			window.location.href = location.origin + "/wechat/index?" + getUrlParam(window.location.href)+"&subpage=my&qiehuan=qiehuan&loginpage="+pageType;
+//			window.location.href = "/wechatNew/src/index.html?subpage=my&qiehuan=qiehuan&loginpage="+pageType;
+		}
+
+        function getUrlParam(url){
+            if(url.indexOf("#") > -1){
+                var param = url.substring(url.indexOf("?")+1,url.indexOf("#"));
+            } else{
+                var param = url.substring(url.indexOf("?")+1,url.length);
+            }
+            return param;
+        }
+	</script>
+</body>
+
+</html>

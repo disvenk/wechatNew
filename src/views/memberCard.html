@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<title></title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui" charset="UTF-8">
+</head>
+<body>
+<script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="//res.wx.qq.com/open/js/jweixin-1.2.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="../assets/js/custom/util.js"></script>
+<script type="text/javascript">
+	var baseUrl = getParam("baseUrl");
+	//baseUrl = "http://ecosystem.tt.com:8085";
+	//baseUrl = "http://test.restoplus.cn";
+	var datas={};
+	$(function(){
+		$.ajax({
+			url: baseUrl + "/wechat/wechatCard/jssdkconfig",
+			type: "post",
+			data: {"query": getUrlParam(window.location.href)},
+			async: false,
+			dataType: "json",
+			success: function (result) {
+				datas=result.data
+				console.log(datas)
+				wx.config({
+				    debug:datas.debug,
+				    appId:datas.appId,
+				    timestamp:datas.timestamp,
+				    nonceStr:datas.nonceStr,
+				    signature:datas.signature,
+				    jsApiList:datas.jsApiList
+				});
+				wx.ready(function(){
+					getcard();
+				});
+				wx.error(function(res){
+					alert(res.errMsg);
+				    //console.log('error')
+				    //config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+				});
+			}
+		});
+	});
+	//wx.ready(function(){
+		  /* document.querySelector('#addCard').onclick = function () {
+		  }; */
+		 // getcard();
+		  /* var codes = [];
+		  document.querySelector('#chooseCard').onclick = function () {
+		    wx.chooseCard({
+		      shopId:'',
+		      cardType:'${card_type}',
+		      //cardId:'${card_id_chooseCard}',
+		      timestamp: '${timestamp_chooseCard}',
+		      nonceStr: '${noncestr_chooseCard}',
+		      signType: 'SHA1',
+		      cardSign: '${signature_chooseCard}',
+		      success: function (res) {
+		        res.cardList = JSON.parse(res.cardList);
+		        encrypt_code = res.cardList[0]['encrypt_code'];
+		        alert(JSON.stringify(res.cardList));
+		        decryptCode(encrypt_code, function (code) {
+		          codes.push(code);
+		        });
+		      },
+		      cancel: function (res) {
+		        alert(JSON.stringify(res))
+		      }
+		    });
+		  }; */
+		  
+		  /* document.querySelector('#openCard').onclick = function () {
+			    if (codes.length < 1) {
+			      return false;
+			    }
+			    var cardList = [];
+			    for (var i = 0; i < codes.length; i++) {
+			      cardList.push({
+			        cardId: '${card_id}',
+			        code: codes[i]
+			      });
+			    }
+			    wx.openCard({
+			      cardList: cardList,
+			      cancel: function (res) {
+			        alert(JSON.stringify(res))
+			      }
+			    });
+		  }; */
+	/*});
+	wx.error(function(res){
+		alert(res.errMsg);
+	    //console.log('error')
+	    //config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+	});*/
+	//获取卡券
+	function getcard(){ 
+		wx.addCard({
+		      cardList: [
+		        {
+		          cardId: datas.card_id,
+		          //cardExt: '{"code": "${code}","timestamp": "${timestamp_addCard}","nonce_str":"${noncestr_addCard}", "signature":"${signature_addCard}"}'
+		          cardExt: '{"timestamp": "'+datas.timestamp_addCard+'","nonce_str":"'+datas.noncestr_addCard+'", "signature":"'+datas.signature_addCard+'"}'
+		        }
+		      ],
+		      success: function (res) {
+		        alert(JSON.stringify(res.cardList));
+		      },
+		      cancel: function (res) {
+		        alert(JSON.stringify(res))
+		      }
+		 });
+		wx.closeWindow();
+	}
+</script>
+</body>
+</html>
